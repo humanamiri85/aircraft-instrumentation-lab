@@ -1,3 +1,21 @@
-import {mount,scale,arc,text,needle,hub,rotate} from './svg.js';
-export const airspeedAngle=v=>-140+(v-40)*280/140;
-export function createAirspeed(el){const part=mount(el,arc(airspeedAngle(45),airspeedAngle(95),83,'#e9eae2',3)+arc(airspeedAngle(55),airspeedAngle(130),87,'#66a77d',4)+arc(airspeedAngle(130),airspeedAngle(175),87,'#d9b862',4)+arc(airspeedAngle(175),airspeedAngle(180),87,'#c65c50',4)+scale(40,180,5,airspeedAngle,4)+text(100,128,'AIRSPEED',10)+text(100,141,'KNOTS',8)+needle('pointer')+hub);return s=>rotate(part('pointer'),airspeedAngle(s.airspeed))}
+import {mapRange} from '../math.js';
+import {mount, scale, arc, text, needle, hub, rotate, point} from './svg.js';
+
+// Generic teaching scale and limits, not certified aircraft specifications.
+export const trainingSpeeds = {stallLanding: 45, stallClean: 55, flapLimit: 95, cruiseLimit: 130, neverExceed: 175};
+export const airspeedAngle = value => mapRange(value, 0, 200, 0, 330);
+
+export function createAirspeed(element) {
+  const speeds = trainingSpeeds;
+  const redStart = point(airspeedAngle(speeds.neverExceed), 73);
+  const redEnd = point(airspeedAngle(speeds.neverExceed), 88);
+  const part = mount(element,
+    arc(airspeedAngle(speeds.stallLanding), airspeedAngle(speeds.flapLimit), 82, '#f2f1e9', 4) +
+    arc(airspeedAngle(speeds.stallClean), airspeedAngle(speeds.cruiseLimit), 87, '#6cb985', 4) +
+    arc(airspeedAngle(speeds.cruiseLimit), airspeedAngle(speeds.neverExceed), 87, '#e1c45c', 4) +
+    scale(0, 200, 5, airspeedAngle, 4) +
+    `<path d="M${redStart}L${redEnd}" stroke="#ef6356" stroke-width="3"/>` +
+    text(100, 123, 'AIRSPEED', 10, 'face-title') + text(100, 136, 'KNOTS', 9) +
+    needle('pointer', 73, 3) + hub);
+  return state => rotate(part('pointer'), airspeedAngle(state.airspeed));
+}
