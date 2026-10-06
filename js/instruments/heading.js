@@ -1,0 +1,2 @@
+import {mount,scale,text,rotate} from './svg.js';
+export function createHeading(el){const part=mount(el,`<g data-part="card">${scale(0,355,5,v=>v,6,v=>({0:'N',90:'E',180:'S',270:'W'}[v]??v/10))}</g><path d="M100 18l-6 -9h12Z" fill="#e8bb74"/><path d="M100 67v65m-25 -29h50m-34 25h18" fill="none" stroke="#e9e9e2" stroke-width="3"/>`+text(100,163,'HEADING',8));return s=>rotate(part('card'),-s.heading)}

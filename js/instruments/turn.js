@@ -1,0 +1,3 @@
+import {mount,text,rotate} from './svg.js';
+export const turnAngle=bank=>bank/45*25;
+export function createTurn(el){const part=mount(el,text(100,44,'TURN COORDINATOR',8)+`<path d="M36 111l7 9m114 0l7 -9" stroke="#eee" stroke-width="3"/><g data-part="plane"><path d="M100 78v44m-46 -22h92m-58 19h24" stroke="#f1f0e8" stroke-width="4"/><path d="M100 83l-8 19h16Z" fill="#f1f0e8"/></g><path d="M60 142Q100 156 140 142L140 154Q100 170 60 154Z" fill="#c1c8c6" stroke="#e8ece8"/><path d="M92 147v13m16 -13v13" stroke="#333"/><circle cx="100" cy="153" r="7" fill="#101416"/>`+text(45,137,'L',12)+text(155,137,'R',12)+text(100,178,'BANK-LINKED DEMO',7));return s=>rotate(part('plane'),turnAngle(s.bank))}
