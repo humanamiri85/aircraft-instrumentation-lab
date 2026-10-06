@@ -1,3 +1,24 @@
-import {mount,text,rotate} from './svg.js';
-export const turnAngle=bank=>bank/45*25;
-export function createTurn(el){const part=mount(el,text(100,44,'TURN COORDINATOR',8)+`<path d="M36 111l7 9m114 0l7 -9" stroke="#eee" stroke-width="3"/><g data-part="plane"><path d="M100 78v44m-46 -22h92m-58 19h24" stroke="#f1f0e8" stroke-width="4"/><path d="M100 83l-8 19h16Z" fill="#f1f0e8"/></g><path d="M60 142Q100 156 140 142L140 154Q100 170 60 154Z" fill="#c1c8c6" stroke="#e8ece8"/><path d="M92 147v13m16 -13v13" stroke="#333"/><circle cx="100" cy="153" r="7" fill="#101416"/>`+text(45,137,'L',12)+text(155,137,'R',12)+text(100,178,'BANK-LINKED DEMO',7));return s=>rotate(part('plane'),turnAngle(s.bank))}
+import {mapRange} from '../math.js';
+import {mount, text, rotate, point} from './svg.js';
+
+// Bank is a qualitative teaching input; ±30° bank aligns with the reference
+// marks but does not calculate or assert an actual standard turn rate.
+export const turnAngle = bank => mapRange(bank, -45, 45, -30, 30);
+
+export function createTurn(element) {
+  const references = [-110, 110].map(angle => {
+    const a = point(angle, 69), b = point(angle, 58);
+    return `<path d="M${a}L${b}" stroke="#eeeae1" stroke-width="3"/>`;
+  }).join('');
+  const part = mount(element,
+    text(100, 49, 'TURN COORDINATOR', 8, 'face-title') + text(100, 65, '2 MIN', 8) +
+    '<path d="M31 100h12m114 0h12" stroke="#eeeae1" stroke-width="2"/>' +
+    references +
+    '<g data-part="plane"><path d="M97 82Q100 76 103 82l2 15 41 5v5l-42 -3v15l11 5v4l-15 -3 -15 3v-4l11 -5v-15l-42 3v-5l41 -5Z" fill="#f1f0e8"/></g>' +
+    text(39, 137, 'L', 13) + text(161, 137, 'R', 13) +
+    '<path d="M61 144Q100 154 139 144v14Q100 169 61 158Z" fill="#c8d0cd" stroke="#f0f1e7"/>' +
+    '<path d="M91 148v13m18 -13v13" stroke="#343b3d" stroke-width="1.5"/>' +
+    '<circle data-part="ball" cx="100" cy="155" r="6" fill="#101416"/>' +
+    text(100, 177, 'BALL FIXED · DEMO', 7));
+  return state => rotate(part('plane'), turnAngle(state.bank));
+}

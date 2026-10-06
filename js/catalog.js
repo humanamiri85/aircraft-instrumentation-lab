@@ -4,11 +4,49 @@ import {createAltimeter} from './instruments/altimeter.js';
 import {createTurn} from './instruments/turn.js';
 import {createHeading} from './instruments/heading.js';
 import {createVSI} from './instruments/vsi.js';
-const n=v=>Math.round(v).toLocaleString('en-US');
-export const instruments=[
- {id:'airspeed',name:'Airspeed Indicator',abbr:'ASI',quantity:'Indicated airspeed',unit:'Knots (kt)',explanation:'The pilot uses indicated airspeed to manage takeoff, climb, approach, and aircraft speed limits.',note:'Colored arcs are illustrative; actual limits depend on the aircraft.',create:createAirspeed,read:s=>`${n(s.airspeed)} kt`},
- {id:'attitude',name:'Attitude Indicator',abbr:'AI',quantity:'Pitch and bank',unit:'Degrees (°)',explanation:'The artificial horizon shows the aircraft’s orientation relative to the horizon. The pilot uses it to maintain or change pitch and bank, especially when outside visibility is limited.',create:createAttitude,read:s=>`${n(s.pitch)}° pitch / ${n(s.bank)}° bank`},
- {id:'altimeter',name:'Altimeter',abbr:'ALT',quantity:'Indicated altitude',unit:'Feet (ft)',explanation:'The pilot uses altitude to maintain assigned levels and terrain clearance. The long hand shows hundreds of feet, the short hand thousands, and the thin hand tens of thousands.',note:'Direct altitude input; pressure setting is fixed for this phase.',create:createAltimeter,read:s=>`${n(s.altitude)} ft`},
- {id:'turn',name:'Turn Coordinator',abbr:'TC',quantity:'Turn tendency',unit:'Qualitative left / right',explanation:'In an aircraft, the miniature airplane indicates turn rate, and the ball indicates slip or skid. Pilots use them to establish and coordinate turns.',note:'Here, bank drives a simplified turn indication. The ball stays centered; turn rate and coordination are not modeled.',create:createTurn,read:s=>Math.abs(s.bank)<.5?'Wings level':`${s.bank<0?'Left':'Right'} turn tendency`},
- {id:'heading',name:'Heading Indicator',abbr:'HI',quantity:'Aircraft heading',unit:'Degrees (°)',explanation:'The pilot reads the heading under the fixed top index to maintain direction or roll out of a turn on a selected heading. North is 000°, east 090°, south 180°, and west 270°.',create:createHeading,read:s=>`${String(Math.round(s.heading)%360).padStart(3,'0')}°`},
- {id:'vsi',name:'Vertical Speed Indicator',abbr:'VSI',quantity:'Rate of climb or descent',unit:'Feet per minute (ft/min)',explanation:'The pilot uses vertical speed to monitor climbs, descents, and level flight. Positive values indicate a climb; negative values indicate a descent.',create:createVSI,read:s=>`${s.verticalSpeed>0?'+':''}${n(s.verticalSpeed)} ft/min`}];
+const n = value => Math.round(value).toLocaleString('en-US');
+
+export const instruments = [
+  {
+    id: 'airspeed', name: 'Airspeed Indicator', abbr: 'ASI',
+    quantity: 'Indicated airspeed', unit: 'Knots (kt)',
+    interpretation: 'Use airspeed to manage takeoff, climb and approach speeds.',
+    note: 'Generic teaching limits: white 45–95 kt (flap range), green 55–130 kt (normal), yellow 130–175 kt (caution); red line 175 kt (never exceed). Not specifications for a certified aircraft.',
+    create: createAirspeed, read: state => `${n(state.airspeed)} kt`
+  },
+  {
+    id: 'attitude', name: 'Attitude Indicator', abbr: 'AI',
+    quantity: 'Pitch and bank', unit: 'Degrees (°)',
+    interpretation: 'Read the fixed aircraft against the horizon: blue below its nose means nose up; a horizon rising to the right means right bank.',
+    note: 'Pitch marks are spaced at 5° / 10°; bank references are at 10°, 20°, 30°, 45° and 60° on each side.',
+    create: createAttitude, read: state => `${n(state.pitch)}° pitch / ${n(state.bank)}° bank`
+  },
+  {
+    id: 'altimeter', name: 'Altimeter', abbr: 'ALT',
+    quantity: 'Indicated altitude', unit: 'Feet (ft)',
+    interpretation: 'Combine the long hundreds hand, short thousands hand and gold ten-thousands marker to read altitude.',
+    note: 'One revolution equals 1,000 / 10,000 / 100,000 ft respectively. Pressure setting stays fixed at 29.92 inHg; altitude is controlled directly.',
+    create: createAltimeter, read: state => `${n(state.altitude)} ft`
+  },
+  {
+    id: 'turn', name: 'Turn Coordinator', abbr: 'TC',
+    quantity: 'Turn tendency (bank-linked demo)', unit: 'Qualitative left / right',
+    interpretation: 'A dropped right wing indicates a right turn tendency; a dropped left wing indicates left. The ball is normally used to check coordination.',
+    note: 'Standard-rate reference marks illustrate a two-minute turn. Bank input only tilts the airplane here; turn rate is not calculated. The slip/skid ball stays centered in Phase 1B.',
+    create: createTurn, read: state => Math.abs(state.bank) < 0.5 ? 'Wings level' : `${state.bank < 0 ? 'Left' : 'Right'} turn tendency`
+  },
+  {
+    id: 'heading', name: 'Heading Indicator', abbr: 'HI',
+    quantity: 'Aircraft heading', unit: 'Degrees (°)',
+    interpretation: 'Read the rotating compass card under the fixed gold lubber line to hold a heading.',
+    note: 'N 000° · E 090° · S 180° · W 270°. Numbered marks are tens of degrees; small marks are every 10°.',
+    create: createHeading, read: state => `${String(Math.round(state.heading) % 360).padStart(3, '0')}°`
+  },
+  {
+    id: 'vsi', name: 'Vertical Speed Indicator', abbr: 'VSI',
+    quantity: 'Rate of climb or descent', unit: 'Feet per minute (ft/min)',
+    interpretation: 'Above the left-hand zero means climb; below means descent. Multiply the dial number by 1,000 ft/min.',
+    note: 'Range ±2,000 ft/min. Vertical speed does not integrate altitude in this phase.',
+    create: createVSI, read: state => `${state.verticalSpeed > 0 ? '+' : ''}${n(state.verticalSpeed)} ft/min`
+  }
+];

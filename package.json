@@ -1,1 +1,1 @@
-{"name":"aircraft-instrumentation-lab","private":true,"type":"module","scripts":{"start":"python3 -m http.server 8000 --bind 0.0.0.0","check":"node --check js/app.js && node --check js/model.js && node --check js/catalog.js"}}
+{"name":"aircraft-instrumentation-lab","private":true,"type":"module","scripts":{"start":"python3 -m http.server 8000 --bind 0.0.0.0","check":"node --check js/app.js && node --check js/model.js && node --check js/catalog.js","test":"node --test"}}
