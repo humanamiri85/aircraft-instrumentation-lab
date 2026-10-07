@@ -1,17 +1,16 @@
 import {createHeading} from '../../instruments/heading.js';
-import {bindInternalNavigation} from '../navigation.js';
+import {bindInternalNavigation,lessonTabs,lessonSteps,lessonComponents} from '../navigation.js';
 import {gyroAssembly} from '../gyro/svg-assembly.js';
 import {mechanismState,advanceSpin} from './model.js';
 import {components,steps} from './content.js';
 
-const tabs=[['face','Instrument Face'],['cutaway','Internal Cutaway'],['works','How It Works']];
 export function createHeadingInternalView(panel) {
   panel.innerHTML=`<div class="section-heading"><div><p class="eyebrow">INSIDE THE INSTRUMENT · PHASE 3F</p><h2 id="heading-internal-title">Heading Indicator</h2></div><span>IDEAL DIRECTIONAL GYRO</span></div>
     <p class="internal-intro">Use the existing Heading control. The aircraft case turns around a stable azimuth reference; the card counter-rotates beneath the case-fixed lubber line. Pitch and Bank do not change this indication.</p>
-    <div class="internal-tabs" role="tablist" aria-label="Heading Indicator learning views">${tabs.map(([id,label],i)=>`<button type="button" role="tab" id="heading-tab-${id}" aria-controls="heading-panel-${id}" aria-selected="${i===0}" tabindex="${i===0?0:-1}">${label}</button>`).join('')}</div>
+    ${lessonTabs('heading','Heading Indicator')}
     <div id="heading-panel-face" role="tabpanel" aria-labelledby="heading-tab-face"><div class="internal-face"></div><p class="face-reading" data-reading="face"></p></div>
     <div id="heading-panel-cutaway" role="tabpanel" aria-labelledby="heading-tab-cutaway" hidden></div>
-    <div id="heading-panel-works" role="tabpanel" aria-labelledby="heading-tab-works" hidden><ol class="internal-steps">${steps.map(([id,text],i)=>`<li><button type="button" data-step="${i}" data-step-component="${id}" aria-pressed="false"><strong>Step ${i+1}</strong> ${text}</button></li>`).join('')}</ol></div>
+    <div id="heading-panel-works" role="tabpanel" aria-labelledby="heading-tab-works" hidden>${lessonSteps(steps)}</div>
     <div class="internal-mechanism" hidden><div class="mechanism-layout"><div>
       <p class="pressure-key"><span>Dashed case / nose · AIRCRAFT-FIXED</span><span>Solid gold axis / north · WORLD-STABILIZED</span></p>
       <div class="diagram-scroll" tabindex="0" role="region" aria-label="Heading cutaway; scroll horizontally on narrow screens">
@@ -25,8 +24,8 @@ export function createHeadingInternalView(panel) {
       <p class="heading-spin-note"></p>
       <div class="attitude-display-path" data-component="drive">Case-to-gyro relative yaw → conceptual pickoff / card-drive gear → counter-rotating compass card ↓</div>
       <div class="attitude-cutaway-display"><h3>CASE-FIXED VIEW · Compass card and lubber line</h3><div class="internal-face cutaway-face"></div><p>Aircraft turns clockwise → card counter-rotates. The gold lubber line stays at the top of the case.</p></div>
-      <div class="component-legend" aria-label="Heading Indicator components">${components.map(([id,title],i)=>`<button type="button" data-select-component="${id}" aria-pressed="false"><span>${i+1}</span> ${title}</button>`).join('')}</div><p class="component-explanation" role="status">Select a component or teaching step.</p>
-    </div><div class="measurement-chain"><h3>Heading chain</h3><ol>
+      ${lessonComponents(components,'Heading Indicator')}
+    </div><div class="measurement-chain"><h3>Live indication chain</h3><ol>
       <li><span>Input · existing control</span><output data-reading="input"></output></li>
       <li><span>Reference</span><span>Directional gyro = stabilized azimuth</span></li>
       <li><span>Relative motion</span><output data-reading="relative"></output></li>

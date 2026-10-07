@@ -1,10 +1,11 @@
+import {setControl} from './internal-browser-helpers.mjs';
 import assert from 'node:assert/strict';
 export async function checkAttitudeInternal(page,scenario) {
   const panel=page.locator('#attitude-internal');
   await page.locator('[data-instrument="attitude"]').click();
   await page.locator('#inside-instrument').click();
   assert.equal(await panel.isVisible(),true);
-  const set=async(key,value)=>page.locator(`#${key}`).evaluate((input,value)=>{input.value=value;input.dispatchEvent(new Event('input',{bubbles:true}));},value);
+  const set=(key,value)=>setControl(page,key,value);
   const parts=async(root)=>root.locator('[data-part]').evaluateAll(nodes=>nodes.map(n=>[n.dataset.part,n.getAttribute('transform')]));
   await page.emulateMedia({reducedMotion:'reduce'});
   for(const [pitch,bank] of [[15,0],[-15,0],[0,30],[0,-30],[10,30],[-10,-30]]) {

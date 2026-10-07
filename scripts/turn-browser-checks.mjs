@@ -1,10 +1,11 @@
+import {setControl} from './internal-browser-helpers.mjs';
 import assert from 'node:assert/strict';
 export async function checkTurnInternal(page,scenario) {
   const panel=page.locator('#turn-internal');
   await page.locator('[data-instrument="turn"]').click();
   await page.locator('#inside-instrument').click();
   assert.equal(await panel.isVisible(),true);
-  const set=async(key,value)=>page.locator(`#${key}`).evaluate((input,value)=>{input.value=value;input.dispatchEvent(new Event('input',{bubbles:true}));},value);
+  const set=(key,value)=>setControl(page,key,value);
   assert.equal(await panel.locator('.cutaway-face [data-part="references"] path').count(),2);
   const snapshot=async(bank)=>{
     await set('bank',bank);

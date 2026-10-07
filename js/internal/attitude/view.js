@@ -1,11 +1,10 @@
 import {createAttitude} from '../../instruments/attitude.js';
 import {attitudeLabels} from '../../aircraft/orientation.js';
-import {bindInternalNavigation} from '../navigation.js';
+import {bindInternalNavigation,lessonTabs,lessonSteps,lessonComponents} from '../navigation.js';
 import {gyroAssembly} from '../gyro/svg-assembly.js';
 import {mechanismState,advanceSpin} from './model.js';
 import {components,steps} from './content.js';
 
-const tabs=[['face','Instrument Face'],['cutaway','Internal Cutaway'],['works','How It Works']];
 function projection(id,x,title,caption) {
   return `<g transform="translate(${x} 160)"><text y="-125" class="projection-title">${title}</text>
     <path d="M-105 0H105" class="stable-horizon" data-component="horizon"/>
@@ -18,10 +17,10 @@ function projection(id,x,title,caption) {
 export function createAttitudeInternalView(panel) {
   panel.innerHTML=`<div class="section-heading"><div><p class="eyebrow">INSIDE THE INSTRUMENT · PHASE 3E</p><h2 id="attitude-internal-title">Attitude Indicator</h2></div><span>IDEAL VERTICAL GYRO</span></div>
     <p class="internal-intro">Use the existing Pitch and Bank controls. The aircraft case moves around a stabilized reference; the display shows their relative orientation. Heading is not indicated.</p>
-    <div class="internal-tabs" role="tablist" aria-label="Attitude Indicator learning views">${tabs.map(([id,label],i)=>`<button type="button" role="tab" id="attitude-tab-${id}" aria-controls="attitude-panel-${id}" aria-selected="${i===0}" tabindex="${i===0?0:-1}">${label}</button>`).join('')}</div>
+    ${lessonTabs('attitude','Attitude Indicator')}
     <div id="attitude-panel-face" role="tabpanel" aria-labelledby="attitude-tab-face"><div class="internal-face"></div><p class="face-reading" data-reading="face"></p></div>
     <div id="attitude-panel-cutaway" role="tabpanel" aria-labelledby="attitude-tab-cutaway" hidden></div>
-    <div id="attitude-panel-works" role="tabpanel" aria-labelledby="attitude-tab-works" hidden><ol class="internal-steps">${steps.map(([id,text],i)=>`<li><button type="button" data-step="${i}" data-step-component="${id}" aria-pressed="false"><strong>Step ${i+1}</strong> ${text}</button></li>`).join('')}</ol></div>
+    <div id="attitude-panel-works" role="tabpanel" aria-labelledby="attitude-tab-works" hidden>${lessonSteps(steps)}</div>
     <div class="internal-mechanism" hidden><div class="mechanism-layout"><div>
       <p class="pressure-key"><span>Dashed case &amp; aircraft symbol · AIRCRAFT-FIXED</span><span>Solid gyro axis &amp; horizon · WORLD-STABILIZED</span></p>
       <div class="diagram-scroll" tabindex="0" role="region" aria-label="Attitude cutaway projections; scroll horizontally on narrow screens">
@@ -32,8 +31,8 @@ export function createAttitudeInternalView(panel) {
       <p class="attitude-spin-note"></p>
       <div class="attitude-display-path" data-component="horizon">Stabilized gyro → conceptual gimbal pickoff / display linkage → relative horizon indication</div>
       <div class="attitude-cutaway-display"><div class="internal-face cutaway-face"></div><p>CASE-FIXED viewer: the aircraft symbol stays level on the dial; the horizon and pitch ladder move.</p></div>
-      <div class="component-legend" aria-label="Attitude Indicator components">${components.map(([id,title],i)=>`<button type="button" data-select-component="${id}" aria-pressed="false"><span>${i+1}</span> ${title}</button>`).join('')}</div><p class="component-explanation" role="status">Select a component or teaching step.</p>
-    </div><div class="measurement-chain"><h3>Attitude chain</h3><ol>
+      ${lessonComponents(components,'Attitude Indicator')}
+    </div><div class="measurement-chain"><h3>Live indication chain</h3><ol>
       <li><span>Input · existing controls</span><output data-reading="input"></output></li>
       <li><span>Reference</span><span>Gyro axis = stabilized world up</span></li>
       <li><span>Relative motion</span><output data-reading="relative"></output></li>

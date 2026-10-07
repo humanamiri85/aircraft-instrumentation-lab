@@ -1,3 +1,4 @@
+import {setControl} from './internal-browser-helpers.mjs';
 import assert from 'node:assert/strict';
 
 export async function checkAsiInternal(page, scenario) {
@@ -10,9 +11,7 @@ export async function checkAsiInternal(page, scenario) {
   assert.equal(await page.locator('#asi-tab-cutaway').getAttribute('aria-selected'),'true');
   assert.equal(await page.locator('#asi-panel-cutaway .internal-mechanism').isVisible(),true);
   assert.equal(await page.locator('input[type=range]').count(),6);
-  async function set(key,value) {
-    await page.locator(`#${key}`).evaluate((input,value)=>{input.value=value;input.dispatchEvent(new Event('input',{bubbles:true}));},value);
-  }
+  const set=(key,value)=>setControl(page,key,value);
   async function snapshot(ias) {
     assert.equal(await page.locator('[data-instrument="airspeed"] .instrument-value').textContent(),`${ias} kt`);
     assert.equal(await panel.locator('[data-reading="pointer"]').textContent(),`${ias} kt`);

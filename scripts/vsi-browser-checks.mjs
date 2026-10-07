@@ -1,7 +1,8 @@
+import {setControl} from './internal-browser-helpers.mjs';
 import assert from 'node:assert/strict';
 export async function checkVsiInternal(page,scenario){
  const panel=page.locator('#vsi-internal');
- const set=async(key,value)=>page.locator(`#${key}`).evaluate((input,value)=>{input.value=value;input.dispatchEvent(new Event('input',{bubbles:true}));},value);
+ const set=(key,value)=>setControl(page,key,value);
  const diff=async()=>Number(await panel.getAttribute('data-differential'));
  async function synchronized(){
   const indicated=Number(await panel.getAttribute('data-indicated'));

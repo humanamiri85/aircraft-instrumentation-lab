@@ -1,4 +1,4 @@
-# Flight Instrument Lab — Phase 3G
+# Flight Instrument Lab — Phase 3H
 
 Interactive six-pack instrument learning page for undergraduate Measurement & Instrumentation. Plain HTML, CSS, JavaScript and dynamic SVG; no runtime dependencies.
 
@@ -522,3 +522,41 @@ retains previous lessons and adds signed gimbal/spring/symbol behavior, neutral
 return, separate fixed ball, all three modes, components/steps, keyboard access,
 Teaching Focus, Reset, desktop/tablet/390px/320px layouts, both motion preferences
 and WebGL-disabled operation. Screenshots go to `/tmp/phase3g-*.png`.
+
+
+## Phase 3H — Internal View Consolidation
+
+Phase 3 now provides internal working views for all six classic instruments:
+
+- **Pitot-static:** Airspeed Indicator, Altimeter and Vertical Speed Indicator.
+- **Gyroscopic:** Attitude Indicator, Heading Indicator and Turn Coordinator.
+
+Each lesson uses **Instrument Face → Internal Cutaway → How It Works**, with
+shared keyboard tabs, numbered component buttons, guided steps and a live
+indication chain. The visualization and chain precede the component explanations
+in the reading order. Physical principles, educational models and conceptual
+geometry remain distinct; instrument-specific models and calibrated cockpit
+renderers are unchanged. The Turn Coordinator continues to use Bank as a proxy,
+and the VSI retains its shared dynamic pressure lag and Reset behavior.
+
+`js/internal/navigation.js` owns common markup and interactions.
+`js/internal/controller.js` loads each optional lesson independently and isolates
+initialization/update failures so the cockpit and other lessons remain usable.
+Hidden lessons stop DOM/rotor updates and refresh from shared flight state on
+selection; the shared application animation loop remains the only frame loop.
+Gyroscope Fundamentals remains a separate foundation with its own three modes
+and retained optional 3D scene.
+
+`npm run test:browser` retains Phase 1–3G coverage and adds sequential visits to
+all six lessons at 1440, 1024, 768, 390 and 320 px, both motion preferences,
+keyboard tabs/components/steps, screen-reader relationships, Teaching Focus,
+Reset and WebGL fallback. Missing-lesson and renderer-exception scenarios verify
+failure isolation. Shared browser control helpers reduce repeated dispatch code
+without removing instrument-specific scientific assertions. Normal startup must
+have zero console errors or failed local resources; injected errors are expected
+only in the deliberate failure scenarios.
+
+Phase 4 will extend internal mechanisms toward complete measurement chains and
+sensing/transmission systems. Current geometry and displacement remain teaching
+visualizations, with no manufacturer geometry, certified mechanical travel,
+failures, drift, noise, calibration effects or flight dynamics implied.

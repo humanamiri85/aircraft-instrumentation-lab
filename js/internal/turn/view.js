@@ -1,5 +1,5 @@
 import {createTurn} from '../../instruments/turn.js';
-import {bindInternalNavigation} from '../navigation.js';
+import {bindInternalNavigation,lessonTabs,lessonSteps,lessonComponents} from '../navigation.js';
 import {mechanismState,advanceSpin} from './model.js';
 import {components,steps} from './content.js';
 
@@ -7,10 +7,10 @@ const proxyNote='In this teaching model, Bank is used as a proxy input to drive 
 export function createTurnInternalView(panel) {
   panel.innerHTML=`<div class="section-heading"><div><p class="eyebrow">INSIDE THE INSTRUMENT · PHASE 3G</p><h2 id="turn-internal-title">Turn Coordinator</h2></div><span>RESTRAINED RATE GYRO</span></div>
     <p class="internal-intro">${proxyNote}</p>
-    <div class="internal-tabs" role="tablist" aria-label="Turn Coordinator learning views">${[['face','Instrument Face'],['cutaway','Internal Cutaway'],['works','How It Works']].map(([id,label],i)=>`<button type="button" role="tab" id="turn-tab-${id}" aria-controls="turn-panel-${id}" aria-selected="${i===0}" tabindex="${i===0?0:-1}">${label}</button>`).join('')}</div>
+    ${lessonTabs('turn','Turn Coordinator')}
     <div id="turn-panel-face" role="tabpanel" aria-labelledby="turn-tab-face"><div class="internal-face"></div><p class="face-reading" data-reading="face"></p><p>±30° Bank aligns with the standard-rate reference marks only in this simplified teaching mapping. Bank alone does not determine a real standard-rate turn.</p></div>
     <div id="turn-panel-cutaway" role="tabpanel" aria-labelledby="turn-tab-cutaway" hidden></div>
-    <div id="turn-panel-works" role="tabpanel" aria-labelledby="turn-tab-works" hidden><ol class="internal-steps">${steps.map(([id,text],i)=>`<li><button type="button" data-step="${i}" data-step-component="${id}" aria-pressed="false"><strong>Step ${i+1}</strong> ${text}</button></li>`).join('')}</ol></div>
+    <div id="turn-panel-works" role="tabpanel" aria-labelledby="turn-tab-works" hidden>${lessonSteps(steps)}</div>
     <div class="internal-mechanism" hidden><div class="mechanism-layout"><div>
       <p class="pressure-key"><span>Dashed outline · AIRCRAFT-FIXED</span><span>Solid rotor / gimbal · RATE-GYRO MOVING PARTS</span><span>Zigzag spring · RESTORING ELEMENT</span></p>
       <div class="diagram-scroll" tabindex="0" role="region" aria-label="Turn cutaway; scroll horizontally on narrow screens">
@@ -31,8 +31,8 @@ export function createTurnInternalView(panel) {
       <p class="attitude-display-path" data-component="shaft">Restrained gimbal → output linkage → airplane-symbol shaft ↓</p>
       <div class="attitude-cutaway-display"><h3>CASE-FIXED DISPLAY · Shared cockpit mapping</h3><div class="internal-face cutaway-face"></div><p data-component="marks">Left/right 2 MIN marks are preserved. Real standard rate is an angular rate, not a Bank angle.</p></div>
       <div class="turn-inclinometer"><h3>BALL / INCLINOMETER · SEPARATE SUBSYSTEM</h3><svg viewBox="0 0 300 85" role="img" aria-label="Separate curved inclinometer tube with centered ball"><g data-component="tube"><path d="M40 20Q150 60 260 20v25Q150 85 40 45Z" fill="#c8d0cd" stroke="#f0f1e7"/></g><g data-component="ball"><circle cx="150" cy="48" r="10" fill="#101416"/><path d="M134 35v28m32 -28v28" stroke="#343b3d"/></g></svg><p>Gravity and lateral acceleration determine ball displacement. Centered = coordinated condition; displaced = slip/skid indication. The ball is not driven by the gyro.</p><p>In this phase the ball is shown as a separate conceptual subsystem and is not dynamically driven by a lateral-acceleration model.</p></div>
-      <div class="component-legend" aria-label="Turn Coordinator components">${components.map(([id,title],i)=>`<button type="button" data-select-component="${id}" aria-pressed="false"><span>${i+1}</span> ${title}</button>`).join('')}</div><p class="component-explanation" role="status">Select a component or teaching step.</p>
-    </div><div class="measurement-chain"><h3>Conceptual rate chain</h3><ol>${[['input','Input · Bank proxy'],['interpretation','Teaching interpretation'],['response','Gyro response'],['spring','Restoring element'],['output','Output'],['ball','Inclinometer']].map(([id,label])=>`<li><span>${label}</span><output data-reading="${id}"></output></li>`).join('')}</ol>
+      ${lessonComponents(components,'Turn Coordinator')}
+    </div><div class="measurement-chain"><h3>Live indication chain</h3><ol>${[['input','Input · Bank proxy'],['interpretation','Teaching interpretation'],['response','Gyro response'],['spring','Restoring element'],['output','Output'],['ball','Inclinometer']].map(([id,label])=>`<li><span>${label}</span><output data-reading="${id}"></output></li>`).join('')}</ol>
       <p class="internal-note">Physical concept: angular-rate sensing using a restrained gyro, not an orientation reference or a free gyro.</p>
       <p class="internal-note">Educational model: bounded, quasi-static equilibrium deflection and spring load in visual units; no calibrated spring forces or response times.</p>
       <p class="internal-note">Visualization: schematic rotor, single gimbal, spring and linkage. Conventional Turn Coordinators use a canted rate gyro with roll and yaw sensitivity; these axis projections are conceptual.</p>

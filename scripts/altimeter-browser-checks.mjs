@@ -1,3 +1,4 @@
+import {setControl} from './internal-browser-helpers.mjs';
 import assert from 'node:assert/strict';
 
 export async function checkAltimeterInternal(page,scenario) {
@@ -10,9 +11,7 @@ export async function checkAltimeterInternal(page,scenario) {
   assert.equal(await page.locator('#asi-internal').isVisible(),false);
   assert.equal(await page.locator('#inside-instrument').getAttribute('aria-controls'),'altimeter-internal');
   assert.equal(await page.locator('input[type=range]').count(),6);
-  async function set(key,value){
-    await page.locator(`#${key}`).evaluate((input,value)=>{input.value=value;input.dispatchEvent(new Event('input',{bubbles:true}));},value);
-  }
+  const set=(key,value)=>setControl(page,key,value);
   async function snapshot(feet){
     const label=`${feet.toLocaleString('en-US')} ft`;
     assert.equal(await page.locator('[data-instrument="altimeter"] .instrument-value').textContent(),label);

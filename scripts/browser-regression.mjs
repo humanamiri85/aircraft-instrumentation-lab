@@ -1,3 +1,4 @@
+import {checkConsolidation,checkLessonIsolation} from './consolidation-browser-checks.mjs';
 import {checkTurnInternal} from './turn-browser-checks.mjs';
 import {checkHeadingInternal} from './heading-browser-checks.mjs';
 import {checkAttitudeInternal} from './attitude-browser-checks.mjs';
@@ -25,7 +26,7 @@ const base = `http://127.0.0.1:${port}/${encodeURIComponent(root.split('/').at(-
 let browser;
 const results=[];
 try {
-  for (const scenario of ['normal','missing-view','missing-cues','missing-three','missing-three-core','init-throws','update-throws','frame-throws','input-throws','webgl-disabled']) {
+  for (const scenario of ['normal','missing-view','missing-cues','missing-three','missing-three-core','init-throws','update-throws','frame-throws','input-throws','missing-lesson','lesson-update-throws','webgl-disabled']) {
     browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH || '/usr/bin/chromium',headless:true,args:['--no-sandbox',...(scenario==='webgl-disabled'?['--disable-webgl']:['--use-angle=swiftshader','--enable-unsafe-swiftshader'])]});
     const page=await browser.newPage({reducedMotion:'reduce'});
     const errors=[],network=[];
@@ -46,9 +47,11 @@ try {
       const condition=scenario==='frame-throws'?'dt > 0':'state.airspeed === 160';
       await page.route('**/js/aircraft/view.js',route=>route.fulfill({contentType:'text/javascript',body:viewSource.replace('export async function createAircraftView(', 'async function originalCreateAircraftView(')+`\nexport async function createAircraftView(panel){const view=await originalCreateAircraftView(panel);return {...view,update(state,dt=0,reducedMotion){if(${condition})throw new Error("Injected ${scenario} failure");view.update(state,dt,reducedMotion);}};}`}));
     }
+    if(scenario==='missing-lesson')await page.route('**/js/internal/turn/view.js',route=>route.fulfill({status:404,contentType:'text/javascript',body:'// Deliberately missing lesson'}));
+    if(scenario==='lesson-update-throws')await page.route('**/js/internal/turn/view.js',route=>route.fulfill({contentType:'text/javascript',body:'export function createTurnInternalView(panel){panel.innerHTML="<p>Injected lesson</p>";return {select(id){panel.hidden=id!=="turn";},open(){panel.hidden=false;},update(state){if(state.bank===30)throw new Error("Injected internal lesson update failure");}};}'}));
     await page.goto(base);
     await page.waitForFunction(()=>document.querySelectorAll('input[type=range]').length===6);
-    if(scenario==='normal' || scenario==='input-throws') {
+    if(['normal','input-throws','missing-lesson','lesson-update-throws'].includes(scenario)) {
       await page.waitForFunction(()=>document.querySelector('.aircraft-status').hidden);
       for(const resource of ['js/app.js','js/model.js','js/catalog.js','js/aircraft/view.js','js/aircraft/orientation.js','js/aircraft/flight-cues.js','vendor/three/three.module.js','vendor/three/three.core.js']){
         const response=await page.request.get(base+resource);assert.equal(response.status(),200,resource);assert.match(response.headers()['content-type'],/javascript/,resource);
@@ -118,7 +121,9 @@ try {
       await checkAttitudeInternal(page,scenario);
       await checkHeadingInternal(page,scenario);
       await checkTurnInternal(page,scenario);
+      await checkConsolidation(page,scenario);
     }
+    if(['missing-lesson','lesson-update-throws'].includes(scenario))await checkLessonIsolation(page,scenario);
     if(scenario==='normal') {
       for(const [name,width,height] of [['desktop',1440,1000],['tablet',768,1024],['mobile',390,844],['small-mobile',320,700]]) {
         await page.setViewportSize({width,height});

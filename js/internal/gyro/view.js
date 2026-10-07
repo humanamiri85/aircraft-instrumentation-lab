@@ -1,7 +1,7 @@
 import {gyroInstruments,modes,components,steps,conceptNote} from './content.js';
 import {attitudeLabels} from '../../aircraft/orientation.js';
 
-// One reusable panel; instrument-specific cutaways remain future work.
+// Shared foundation complements the three instrument-specific gyro lessons.
 export function createGyroView(panel) {
   panel.innerHTML=`<div class="section-heading"><div><p class="eyebrow">SHARED FOUNDATION · PHASE 3D</p><h2 id="gyro-title">Gyroscope Fundamentals</h2></div></div>
     <p class="internal-intro">Use the existing Pitch, Bank and Heading controls. This shared lesson is not an Attitude Indicator, Heading Indicator or Turn Coordinator cutaway.</p>
@@ -12,7 +12,7 @@ export function createGyroView(panel) {
     <dl class="gyro-axis-key"><div><dt>Aircraft longitudinal</dt><dd>Nose · local −Z; bank rotates about this axis.</dd></div><div><dt>Aircraft lateral</dt><dd>Right wing · local +X; positive pitch raises the nose.</dd></div><div><dt>Aircraft vertical</dt><dd>Up · local +Y; heading increases clockwise from north.</dd></div><div><dt>Gyro spin</dt><dd>Gold shaft · fixed world −Z / north, distinct from the moving aircraft nose.</dd></div><div><dt>Outer gimbal axis</dt><dd>Blue bearing · body +Y.</dd></div><div><dt>Inner gimbal axis</dt><dd>White bearing · outer-ring local +X.</dd></div></dl>
     <div class="component-legend">${components.map(([id,title],i)=>`<button type="button" data-gyro-component="${id}" aria-pressed="false"><span>${i+1}</span>${title}</button>`).join('')}</div><p class="component-explanation" role="status">Select a component or a teaching step.</p>
     <h3>How it works</h3><ol class="internal-steps">${steps.map(([id,text],i)=>`<li><button type="button" data-gyro-step="${i}" data-component-id="${id}" aria-pressed="false"><strong>Step ${i+1}</strong>${text}</button></li>`).join('')}</ol>
-    <p class="internal-note">${conceptNote}</p><p class="internal-note">Ideal, unlimited gimbal travel is shown. The two bearings keep the spin axis pointed north; rotation about that axis is not a stabilized attitude reference. This common lesson illustrates rigidity, not the different axis arrangements or rate sensing of specific instruments. A turn coordinator will later require torque and precession concepts. Wheel speed is slowed for visibility; no physical RPM, indication, drift or dynamics is calculated.</p></div>`;
+    <p class="internal-note">${conceptNote}</p><p class="internal-note">Ideal, unlimited gimbal travel is shown. The two bearings keep the spin axis pointed north; rotation about that axis is not a stabilized attitude reference. This common lesson illustrates rigidity, not the different axis arrangements or rate sensing of specific instruments. The Turn Coordinator lesson separately illustrates restrained-rate response and conceptual precession. Wheel speed is slowed for visibility; no physical RPM, indication, drift or dynamics is calculated.</p></div>`;
   let mode='assembly',component='',phase=0,scene,modelModule,loading,closed=false;
   let latest={pitch:0,bank:0,heading:0},reduced=false;
   const lesson=panel.querySelector('.gyro-lesson'),status=panel.querySelector('.gyro-status');
