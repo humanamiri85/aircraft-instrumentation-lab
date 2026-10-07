@@ -1,3 +1,4 @@
+import {checkGyroFoundation} from './gyro-browser-checks.mjs';
 import {checkVsiInternal} from './vsi-browser-checks.mjs';
 import {checkAltimeterInternal} from './altimeter-browser-checks.mjs';
 import {checkAsiInternal} from './asi-browser-checks.mjs';
@@ -79,7 +80,7 @@ try {
       assert.deepEqual((await page.locator('#flight-data .linked dd').evaluateAll(fields=>fields.map(field=>field.dataset.flight))).sort(),[...keys].sort());
       assert.equal(await page.locator(`[data-instrument="${id}"]`).getAttribute('aria-pressed'),'true');
       assert.ok(await page.locator('#relationship').textContent());
-      if(scenario==='normal') await page.waitForFunction(cue=>document.querySelector('canvas').dataset.focusedCues===cue,cues[id]);
+      if(scenario==='normal') await page.waitForFunction(cue=>document.querySelector('.aircraft-viewport canvas').dataset.focusedCues===cue,cues[id]);
       // Exercise every linked input with its focus active; existing assertions above
       // cover the resulting instrument readings, independence and 3D transforms.
       for(const key of keys) {
@@ -110,6 +111,7 @@ try {
       await checkAsiInternal(page,scenario);
       await checkAltimeterInternal(page,scenario);
       await checkVsiInternal(page,scenario);
+      await checkGyroFoundation(page,scenario);
     }
     if(scenario==='normal') {
       for(const [name,width,height] of [['desktop',1440,1000],['tablet',768,1024],['mobile',390,844],['small-mobile',320,700]]) {
@@ -117,7 +119,7 @@ try {
         await page.waitForTimeout(100);
         assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,`${name}: horizontal overflow`);
         const bounds=await page.locator('#flight-data').boundingBox();
-        const canvasBounds=await page.locator('canvas').boundingBox();
+        const canvasBounds=await page.locator('.aircraft-viewport canvas').boundingBox();
         assert.ok(bounds.y+bounds.height<=canvasBounds.y+1,`${name}: HUD overlaps canvas`);
         await page.screenshot({path:`/tmp/phase2c-${name}.png`,fullPage:true});
       }

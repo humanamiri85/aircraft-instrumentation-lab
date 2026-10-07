@@ -1,3 +1,4 @@
+import {createGyroView,gyroInstruments} from './internal/gyro/view.js';
 import {createVsiInternalView} from './internal/vsi/view.js';
 import {initialLag,advanceLag,mechanismState as vsiMechanism} from './internal/vsi/model.js';
 import {createAltimeterInternalView} from './internal/altimeter/view.js';
@@ -12,9 +13,10 @@ const target=initialState(),current=initialState();
 const grid=document.querySelector('#instruments'),controls=document.querySelector('#controls');
 const renderers=instruments.map((instrument,index)=>{const button=document.createElement('button');button.type='button';button.className='instrument';button.dataset.instrument=instrument.id;button.setAttribute('aria-pressed','false');button.setAttribute('aria-label',`Learn about the ${instrument.name}`);button.innerHTML=`<div class="drawing"></div><span class="instrument-name">${instrument.name}</span><span class="instrument-value"></span>`;grid.append(button);button.addEventListener('click',()=>select(instrument));return {update:instrument.create(button.querySelector('.drawing')),id:instrument.id,read:instrument.read,value:button.querySelector('.instrument-value')}});
 const internalViews={airspeed:createAsiInternalView(document.querySelector('#asi-internal')),altimeter:createAltimeterInternalView(document.querySelector('#altimeter-internal')),vsi:createVsiInternalView(document.querySelector('#vsi-internal'))};
+const gyroView=createGyroView(document.querySelector('#gyro-internal'));
 const internalView={
-  update(state) {Object.values(internalViews).forEach(view=>view.update(state,vsiLag,motion.matches));},
-  select(id) {Object.values(internalViews).forEach(view=>view.select(id));},
+  update(state,dt=0) {Object.values(internalViews).forEach(view=>view.update(state,vsiLag,motion.matches));gyroView.update(state,dt,motion.matches);},
+  select(id) {Object.values(internalViews).forEach(view=>view.select(id));gyroView.select(id);},
   open() {internalViews[focus.instrument]?.open();}
 };
 
@@ -45,12 +47,14 @@ function updateAircraft(dt = 0) {
 window.addEventListener('pagehide', event => {
   if (!event.persisted) {
     disposed = true;
+    gyroView.dispose();
     try {aircraftView?.dispose();} catch (error) {console.error('Aircraft cleanup failed:', error);}
   }
 });
 const format=(v,value)=>`${Math.round(value).toLocaleString('en-US')}${v.unit==='°'?'':' '}${v.unit}`;
 variables.forEach(v=>{const row=document.createElement('div');row.className='control';row.dataset.variable=v.key;row.innerHTML=`<div class="control-line"><label for="${v.key}">${v.label}</label><output for="${v.key}" id="${v.key}-value"></output></div><input id="${v.key}" type="range" min="${v.min}" max="${v.max}" step="${v.step}" value="${v.initial}"><div class="limits"><span>${format(v,v.min)}</span><span>${format(v,v.max)}</span></div>`;controls.append(row);row.querySelector('output').textContent=format(v,v.initial);row.querySelector('input').addEventListener('input',event=>{setVariable(target,v.key,Number(event.target.value));row.querySelector('output').textContent=format(v,target[v.key]);current[v.key]=target[v.key];renderCockpit();internalView.update(current);updateAircraft()})});
 function applyFocus() {
+  gyroView.setFocus(focus.enabled&&gyroInstruments.includes(focus.instrument));
   const linked=linkedFocus(focus);
   document.querySelector('.workspace').classList.toggle('teaching-focus',focus.enabled);
   controls.querySelectorAll('[data-variable]').forEach(row=>{
@@ -91,10 +95,11 @@ function select(instrument) {
     </dl>
     <p id="relationship">${link.relationship}</p>
     ${instrument.note ? `<div class="note">${instrument.note}</div>` : ''}
-    ${internalViews[instrument.id] ? `<button type="button" id="inside-instrument" aria-controls="${instrument.id==='airspeed'?'asi':instrument.id}-internal">Inside the Instrument</button>` : '<p class="internal-unavailable">Internal mechanism view will be added in a later phase.</p>'}`;
+    ${internalViews[instrument.id] ? `<button type="button" id="inside-instrument" aria-controls="${instrument.id==='airspeed'?'asi':instrument.id}-internal">Inside the Instrument</button>` : '<p class="internal-unavailable">Internal mechanism view will be added in a later phase.</p><button type="button" id="gyro-fundamentals" aria-controls="gyro-internal">Gyroscope Fundamentals</button>'}`;
   internalView.select(instrument.id);
   internalView.update(current);
   document.querySelector('#inside-instrument')?.addEventListener('click',()=>internalView.open());
+  document.querySelector('#gyro-fundamentals')?.addEventListener('click',()=>gyroView.open());
   applyFocus();
 }
 document.querySelector('#teaching-focus').addEventListener('change',event=>{
@@ -103,7 +108,7 @@ document.querySelector('#teaching-focus').addEventListener('change',event=>{
 document.querySelector('#reset').addEventListener('click',()=>{Object.assign(target,initialState());Object.assign(current,target);vsiLag=initialLag();renderCockpit();internalView.update(current);updateAircraft();variables.forEach(v=>{document.getElementById(v.key).value=target[v.key];document.getElementById(`${v.key}-value`).textContent=format(v,target[v.key])})});
 let last=performance.now();
 select(instruments[0]);
-function frame(now){const previousFrame=last;smoothState(current,target,(now-last)/1000,motion.matches);last=now;renderCockpit((now-previousFrame)/1000);internalView.update(current);updateAircraft((now-previousFrame)/1000);requestAnimationFrame(frame)}requestAnimationFrame(frame);
+function frame(now){const previousFrame=last;smoothState(current,target,(now-last)/1000,motion.matches);last=now;renderCockpit((now-previousFrame)/1000);internalView.update(current,(now-previousFrame)/1000);updateAircraft((now-previousFrame)/1000);requestAnimationFrame(frame)}requestAnimationFrame(frame);
 
 // Core controls, instruments and the frame loop are ready before optional imports.
 // A failed module anywhere in the aircraft dependency graph cannot block startup.

@@ -309,3 +309,55 @@ response, recovery, synchronized pointers, Reset, variable independence, tabs,
 steps/components, keyboard access, Teaching Focus, desktop/tablet/390px/320px
 layouts, and both motion preferences with and without WebGL. Phase 3C screenshots
 are written to `/tmp/phase3c-*.png`.
+
+## Phase 3D — Gyroscopic Instruments Foundation
+
+Select **Attitude Indicator**, **Heading Indicator** or **Turn Coordinator**, then
+**Gyroscope Fundamentals**. This opens one shared lesson; the instrument-specific
+internal mechanisms remain later-phase placeholders. **Gyro Assembly**, **Axis
+View** and **Rigidity Demo** share the existing Pitch, Bank and Heading controls,
+Reset and application animation loop. No flight-state sliders or dependencies
+are added. Tabs support Arrow/Home/End keys; component and five teaching-step
+buttons support keyboard activation. Text descriptions accompany the 3D view.
+
+The gold rotor and spin shaft sit inside a white inner gimbal and blue outer
+gimbal. A dashed aircraft-mounted instrument frame and labeled nose, right-wing
+and up axes move around them. In the ideal rigidity demonstration the spin axis
+stays pointed toward world north while body motion changes the relative bearing
+angles. Ring radii are separated and bearing pins mark the support paths; geometry
+is conceptual, with unlimited bearing travel and no mechanical stops. Rotor spin
+is deliberately slow for visibility. Reduced motion freezes the rotor and shows a
+static spin-direction indicator, while all control-driven orientations still update.
+
+Coordinate conventions reuse `js/aircraft/orientation.js`: world **+X east, +Y up,
+−Z north**; aircraft **−Z longitudinal/nose, +X lateral/right wing, +Y vertical/up**.
+Intrinsic **YXZ** rotation maps negative heading, positive pitch and negative bank:
+heading increases clockwise from north, nose-up raises the nose, right bank lowers
+the right wing. `gyro/model.js` computes the inverse body transform of the fixed
+north spin vector. An outer bearing about **body +Y** and inner bearing about
+**outer-local +X** solve the relative pointing angles. Their composed transform
+keeps the rotor's **−Z spin axis** fixed in world space across all control ranges.
+This stabilizes an axis, not all three rotor-frame axes; roll about the spin axis
+is not an attitude reference. The arrangement demonstrates a generic free-gyro
+concept, not the particular axes or mechanisms of each real instrument.
+
+`js/internal/gyro/` separates coordinate/state helpers (`model.js`), educational
+text (`content.js`), accessible lesson navigation (`view.js`) and Three.js scene
+rendering (`scene.js`). The optional renderer and model load only when the lesson
+opens; failure leaves the cockpit, earlier cutaways and textual lesson usable.
+The gyro module is reusable by future AI, HI and Turn Coordinator views; a turn
+coordinator's rate sensing will require additional torque/precession concepts.
+Teaching Focus highlights the shared panel when invoked from a gyro instrument,
+while retaining each instrument's existing control/HUD/cue relationships.
+
+**Gyroscope behavior is shown conceptually; detailed torque and precession dynamics
+are introduced later.** No rotational dynamics, erection systems, vacuum behavior,
+drift, failures or instrument-specific indications are implemented.
+
+`npm test` adds gyro normalization, aviation sign mappings, all 45 combinations of
+pitch −20/0/+20°, bank −45/0/+45° and heading 0/90/180/270/359°, inverse-reference
+transforms and reduced-motion spin tests. `npm run test:browser` retains all prior
+ASI/Altimeter/VSI checks and adds the shared gyro lesson: actual rendered stable
+spin axes, moving body frame, three modes, keyboard/component/step navigation,
+Teaching Focus, Reset, desktop/tablet/390px/320px layout and both motion preferences
+with normal WebGL and WebGL disabled. Screenshots go to `/tmp/phase3d-*.png`.
