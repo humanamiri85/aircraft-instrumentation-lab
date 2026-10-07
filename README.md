@@ -78,3 +78,32 @@ the existing animation loop. HUD and textual cues remain active in the WebGL
 fallback. No additional application dependencies, build steps or external
 assets are needed. `npm test` covers the cue mappings, formatting and independent
 state as well as the Phase 1/2A instrument and orientation tests.
+
+### Browser interaction regression checks
+
+Core controls, instruments and their animation loop initialize before the optional
+3D module is dynamically imported. Missing aircraft dependencies, WebGL startup
+failures and aircraft update exceptions are reported in the aircraft panel and
+console without stopping the six-pack. All resources use relative paths beneath
+`/aircraft-instrumentation-lab/`; the bundled `three.module.js` also imports
+`./three.core.js`, which must be deployed alongside it.
+
+`npm run test:browser` runs Chromium interaction checks from a plain Python static
+server under the repository subdirectory. It exercises all six sliders, SVG
+changes, shared-state readings, Reset, HUD/3D changes when available, and continued
+animation with missing aircraft/Three.js modules, initialization/update exceptions
+and WebGL disabled. It reports every console error and failed module request;
+errors in deliberately broken scenarios are expected, while normal startup must
+have none. These browser checks supplement `npm test`.
+
+Playwright is optional development tooling. Install it outside the checkout to
+avoid changing application dependencies or generating a repository lockfile:
+
+```sh
+npm install --prefix /tmp/aircraft-browser --cache /tmp/aircraft-npm-cache --no-audit --no-fund playwright
+PLAYWRIGHT_MODULE=/tmp/aircraft-browser/node_modules/playwright/index.mjs \
+CHROMIUM_PATH=/usr/bin/chromium npm run test:browser
+```
+
+Use an installed Chromium executable via `CHROMIUM_PATH` if its location differs.
+The browser runner starts and stops its own static server on an ephemeral port.

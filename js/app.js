@@ -1,14 +1,34 @@
-import {createAircraftView} from './aircraft/view.js';
 import {variables,initialState,setVariable,smoothState} from './model.js';
 import {instruments} from './catalog.js';
 const target=initialState(),current=initialState();
 const grid=document.querySelector('#instruments'),controls=document.querySelector('#controls');
 const renderers=instruments.map((instrument,index)=>{const button=document.createElement('button');button.type='button';button.className='instrument';button.dataset.instrument=instrument.id;button.setAttribute('aria-pressed','false');button.setAttribute('aria-label',`Learn about the ${instrument.name}`);button.innerHTML=`<div class="drawing"></div><span class="instrument-name">${instrument.name}</span><span class="instrument-value"></span>`;grid.append(button);button.addEventListener('click',()=>select(instrument));return {update:instrument.create(button.querySelector('.drawing')),read:instrument.read,value:button.querySelector('.instrument-value')}});
 let aircraftView;
-createAircraftView(document.querySelector('.aircraft-panel')).then(view => {aircraftView = view; view.update(current);});
-window.addEventListener('pagehide', event => {if (!event.persisted) aircraftView?.dispose();});
+let disposed = false;
+function aircraftFailure(error) {
+  console.error('Optional aircraft visualization failed:', error);
+  const failedView = aircraftView;
+  aircraftView = undefined;
+  try {failedView?.dispose();} catch (disposeError) {console.error('Aircraft cleanup failed:', disposeError);}
+  const panel = document.querySelector('.aircraft-panel');
+  const status = panel?.querySelector('.aircraft-status');
+  if (status) {
+    status.hidden = false;
+    status.textContent = '3D view unavailable. The cockpit instruments and controls remain active.';
+  }
+  panel?.querySelectorAll('canvas').forEach(canvas => {canvas.hidden = true;});
+}
+function updateAircraft(dt = 0) {
+  try {aircraftView?.update(current, dt, motion.matches);} catch (error) {aircraftFailure(error);}
+}
+window.addEventListener('pagehide', event => {
+  if (!event.persisted) {
+    disposed = true;
+    try {aircraftView?.dispose();} catch (error) {console.error('Aircraft cleanup failed:', error);}
+  }
+});
 const format=(v,value)=>`${Math.round(value).toLocaleString('en-US')}${v.unit==='°'?'':' '}${v.unit}`;
-variables.forEach(v=>{const row=document.createElement('div');row.className='control';row.innerHTML=`<div class="control-line"><label for="${v.key}">${v.label}</label><output for="${v.key}" id="${v.key}-value"></output></div><input id="${v.key}" type="range" min="${v.min}" max="${v.max}" step="${v.step}" value="${v.initial}"><div class="limits"><span>${format(v,v.min)}</span><span>${format(v,v.max)}</span></div>`;controls.append(row);row.querySelector('output').textContent=format(v,v.initial);row.querySelector('input').addEventListener('input',event=>{setVariable(target,v.key,Number(event.target.value));row.querySelector('output').textContent=format(v,target[v.key]);current[v.key]=target[v.key];renderers.forEach(r=>{r.update(current);r.value.textContent=r.read(current)});aircraftView?.update(current,0,motion.matches)})});
+variables.forEach(v=>{const row=document.createElement('div');row.className='control';row.innerHTML=`<div class="control-line"><label for="${v.key}">${v.label}</label><output for="${v.key}" id="${v.key}-value"></output></div><input id="${v.key}" type="range" min="${v.min}" max="${v.max}" step="${v.step}" value="${v.initial}"><div class="limits"><span>${format(v,v.min)}</span><span>${format(v,v.max)}</span></div>`;controls.append(row);row.querySelector('output').textContent=format(v,v.initial);row.querySelector('input').addEventListener('input',event=>{setVariable(target,v.key,Number(event.target.value));row.querySelector('output').textContent=format(v,target[v.key]);current[v.key]=target[v.key];renderers.forEach(r=>{r.update(current);r.value.textContent=r.read(current)});updateAircraft()})});
 function select(instrument) {
   grid.querySelectorAll('button').forEach(button => {
     button.setAttribute('aria-pressed', String(button.dataset.instrument === instrument.id));
@@ -24,6 +44,17 @@ function select(instrument) {
     ${instrument.note ? `<div class="note">${instrument.note}</div>` : ''}`;
 }
 select(instruments[0]);
-document.querySelector('#reset').addEventListener('click',()=>{Object.assign(target,initialState());Object.assign(current,target);renderers.forEach(r=>{r.update(current);r.value.textContent=r.read(current)});aircraftView?.update(current,0,motion.matches);variables.forEach(v=>{document.getElementById(v.key).value=target[v.key];document.getElementById(`${v.key}-value`).textContent=format(v,target[v.key])})});
+document.querySelector('#reset').addEventListener('click',()=>{Object.assign(target,initialState());Object.assign(current,target);renderers.forEach(r=>{r.update(current);r.value.textContent=r.read(current)});updateAircraft();variables.forEach(v=>{document.getElementById(v.key).value=target[v.key];document.getElementById(`${v.key}-value`).textContent=format(v,target[v.key])})});
 const motion=matchMedia('(prefers-reduced-motion: reduce)');let last=performance.now();
-function frame(now){const previousFrame=last;smoothState(current,target,(now-last)/1000,motion.matches);last=now;renderers.forEach(r=>{r.update(current);r.value.textContent=r.read(current)});aircraftView?.update(current,(now-previousFrame)/1000,motion.matches);requestAnimationFrame(frame)}requestAnimationFrame(frame);
+function frame(now){const previousFrame=last;smoothState(current,target,(now-last)/1000,motion.matches);last=now;renderers.forEach(r=>{r.update(current);r.value.textContent=r.read(current)});updateAircraft((now-previousFrame)/1000);requestAnimationFrame(frame)}requestAnimationFrame(frame);
+
+// Core controls, instruments and the frame loop are ready before optional imports.
+// A failed module anywhere in the aircraft dependency graph cannot block startup.
+import('./aircraft/view.js')
+  .then(({createAircraftView}) => createAircraftView(document.querySelector('.aircraft-panel')))
+  .then(view => {
+    if (disposed) {view.dispose(); return;}
+    aircraftView = view;
+    updateAircraft();
+  })
+  .catch(aircraftFailure);

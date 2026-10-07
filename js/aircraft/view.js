@@ -85,7 +85,9 @@ export async function createAircraftView(panel) {
       camera.updateProjectionMatrix();
     }
     observer = new ResizeObserver(resize); observer.observe(viewport); resize();
-    const fallback = () => {lost = true; status.hidden = false; status.textContent = '3D view unavailable. The cockpit instruments and controls remain active.'; renderer.domElement.hidden = true;};
+    const fallback = error => {
+      if (error) console.error('Aircraft renderer failed:', error);
+      lost = true; status.hidden = false; status.textContent = '3D view unavailable. The cockpit instruments and controls remain active.'; renderer.domElement.hidden = true;};
     renderer.domElement.addEventListener('webglcontextlost', event => {event.preventDefault(); fallback();});
     status.hidden = true;
     return {
@@ -115,7 +117,7 @@ export async function createAircraftView(panel) {
         // Render on the application's existing animation frame even when attitude
         // is unchanged. WebGL's default drawing buffer is not preserved after
         // compositing; skipping idle frames can leave captures/exposure blank.
-        try {renderer.render(scene, camera);} catch {fallback();}
+        try {renderer.render(scene, camera);} catch (error) {fallback(error);}
       },
       dispose() {
         observer.disconnect(); toggle.removeEventListener('change', toggleHUD);
@@ -123,7 +125,8 @@ export async function createAircraftView(panel) {
         labels.forEach(texture => texture.dispose()); renderer.dispose(); renderer.domElement.remove();
       }
     };
-  } catch {
+  } catch (error) {
+    console.error('Aircraft initialization failed:', error);
     observer?.disconnect(); renderer?.dispose(); renderer?.domElement.remove();
     status.hidden = false; status.textContent = '3D view unavailable (WebGL is required). The cockpit instruments and controls remain active.';
     return {update: updateLabels, dispose() {toggle.removeEventListener('change', toggleHUD);}};
