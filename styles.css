@@ -2,3 +2,13 @@
 
 .flight-panels{display:grid;gap:24px;min-width:0}.aircraft-panel{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:20px;min-width:0}.aircraft-explanation,.aircraft-foot{font-size:12px;color:var(--muted);margin:10px 0}.aircraft-foot{margin-bottom:0}.aircraft-viewport{position:relative;height:380px;overflow:hidden;border-radius:6px;background:#29383f}.aircraft-viewport canvas{display:block;width:100%;height:100%}.attitude-overlay{position:absolute;top:12px;left:12px;margin:0;background:#111619df;border:1px solid #66767b;border-radius:5px;padding:10px 12px;pointer-events:none;font-size:12px}.attitude-overlay div{display:flex;gap:12px;justify-content:space-between}.attitude-overlay dt{color:#bac6c9}.attitude-overlay dd{margin:0;color:var(--accent);font-family:ui-monospace,monospace}.aircraft-status{position:absolute;z-index:1;inset:100px 20px auto;padding:16px;background:#111619e8;border-radius:6px;font-size:14px}.aircraft-status[hidden]{display:none}@media(max-width:1050px){aside{grid-template-columns:1fr}.workspace{grid-template-columns:minmax(0,1fr) 290px}.instrument-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.aircraft-viewport{height:330px}}@media(max-width:760px){.workspace{grid-template-columns:minmax(0,1fr)}aside{grid-template-columns:1fr}.aircraft-panel{padding:14px}.aircraft-viewport{height:320px}}
 @media(min-width:1051px){aside{position:sticky;top:20px}}@media(max-width:1050px){.workspace{grid-template-columns:minmax(0,1fr)}.instrument-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:520px){.instrument-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* HUD occupies its own compact strip so it never obscures the aircraft. */
+.flight-data-toggle{display:flex;align-items:center;gap:8px;font-size:12px;margin:12px 0;cursor:pointer}.flight-data-toggle input{accent-color:var(--accent)}
+.aircraft-viewport{padding-top:82px;height:420px}
+.aircraft-viewport canvas{height:100%}
+.attitude-overlay{top:0;left:0;right:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 16px;border-radius:0;padding:12px;font-size:12px}
+.attitude-overlay div{gap:6px;align-items:center}.attitude-overlay dd{white-space:nowrap}.attitude-overlay[hidden]{display:none}
+.flight-cue-readings{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;margin-top:12px;color:var(--accent);font:12px ui-monospace,monospace}
+@media(max-width:760px){.aircraft-viewport{height:400px}.attitude-overlay{font-size:11px;gap:8px}}
+@media(max-width:520px){.attitude-overlay{grid-template-columns:repeat(2,minmax(0,1fr));padding:10px}.aircraft-viewport{padding-top:104px;height:420px}.aircraft-panel .section-heading{flex-wrap:wrap}}
