@@ -142,3 +142,46 @@ motion does not translate the aircraft. No new physical behavior is introduced.
 checks all six selections, linked controls/HUD/cues, slider changes, Reset,
 Teaching focus on/off, keyboard input, fallback scenarios and desktop/tablet/mobile
 layout (including a 320px viewport). Browser screenshots are written to `/tmp`.
+
+## Phase 3A — Airspeed Indicator Internal Working View
+
+Select **Airspeed Indicator**, then **Inside the Instrument** to open the cutaway
+inside the lab. **Instrument Face**, **Internal Cutaway** and **How It Works**
+share the existing Airspeed control. The six guided steps and numbered component
+buttons highlight the pressure inlet, static region, capsule, linkage, lever/gear,
+shaft, pointer and dial. Other instruments show a later-phase message. Teaching
+Focus still links the ASI, Airspeed control and aircraft relative-motion cue.
+
+The pressure model uses `q = ½ρV²` and `Pt − Ps ≈ q`, with a **fixed** sea-level
+reference density of **1.225 kg/m³** and conversion **1 kt = 1852/3600 m/s**.
+At 40, 110 and 180 kt it yields approximately **259, 1961 and 5252 Pa**.
+These are simplified educational reference pressures, not exact aircraft air-data
+values. Static pressure is a fixed reference; independently controlled altitude
+never changes density or the calculated pressure. No compressibility, sensor
+errors, failures or other instrument internals are included.
+
+Capsule deflection is normalized as `q / q(180 kt)`, bounded over the existing
+40–180 kt range: approximately **5%, 37% and 100% visual scale**. It moves the
+capsule end by up to 32 SVG units and rotates a fixed-length conceptual lever
+from −18° to +18°. The connecting link stays attached to the moving capsule end
+and lever tip. These are **visual teaching mappings**, not calibrated mechanical
+displacements or an exact manufacturing geometry. The case is shown open and the
+front dial alongside it, so the transmission path is visible.
+
+The nonlinear conversion from capsule/lever travel to dial rotation is conceptual:
+there is no claim of an exact gear ratio. Both the pinion and cutaway pointer use
+the existing `airspeedAngle` calibration, and the additional face uses the original
+ASI renderer. All update from the same displayed application state, including
+Reset; there is no second slider, independent state, or extra animation loop.
+Reduced motion retains immediate positions, arrows, numeric readings and component
+outlines. On narrow phones only the diagram scrolls horizontally to retain legible
+number markers; labels and data remain stacked, with no page-level overflow.
+
+The modular implementation lives in `js/internal/asi/`: `model.js` contains the
+pure pressure calculation and documented visual mapping, `view.js` renders and
+updates the SVG/learning views, and `content.js` holds component and step text.
+`npm test` adds conversion, reference-pressure, monotonicity, bounded deflection,
+rigid-lever geometry and shared pointer calibration checks. `npm run test:browser`
+now also exercises 110/40/180 kt, tabs, component/step selection, keyboard access,
+Teaching Focus, Reset, altitude independence, responsive layouts and both motion
+preferences, including operation without WebGL. Phase 3A screenshots go to `/tmp`.
