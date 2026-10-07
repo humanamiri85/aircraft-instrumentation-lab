@@ -1,3 +1,4 @@
+import {checkVsiInternal} from './vsi-browser-checks.mjs';
 import {checkAltimeterInternal} from './altimeter-browser-checks.mjs';
 import {checkAsiInternal} from './asi-browser-checks.mjs';
 // Optional browser tooling: see README. Application dependencies remain unchanged.
@@ -108,6 +109,7 @@ try {
     if(['normal','webgl-disabled'].includes(scenario)){
       await checkAsiInternal(page,scenario);
       await checkAltimeterInternal(page,scenario);
+      await checkVsiInternal(page,scenario);
     }
     if(scenario==='normal') {
       for(const [name,width,height] of [['desktop',1440,1000],['tablet',768,1024],['mobile',390,844],['small-mobile',320,700]]) {
