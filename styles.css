@@ -34,11 +34,11 @@
 .internal-panel[hidden],.internal-panel [hidden]{display:none}
 .internal-panel.focus-linked{border-color:var(--accent)}
 .internal-intro,.diagram-caption{color:var(--muted);font-size:13px}
-#inside-instrument,.internal-tabs button,.component-legend button,.asi-steps button{font:inherit;color:inherit;background:#141b1f;border:1px solid #526167;border-radius:5px;cursor:pointer;padding:10px 12px;text-align:left}
+#inside-instrument,.internal-tabs button,.component-legend button,.internal-steps button{font:inherit;color:inherit;background:#141b1f;border:1px solid #526167;border-radius:5px;cursor:pointer;padding:10px 12px;text-align:left}
 #inside-instrument{margin-top:16px;color:var(--accent);border-color:var(--accent)}
 .internal-unavailable{margin-top:16px!important}
 .internal-tabs{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0}
-.internal-tabs button[aria-selected=true],.component-legend button[aria-pressed=true],.asi-steps button[aria-pressed=true]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.internal-tabs button[aria-selected=true],.component-legend button[aria-pressed=true],.internal-steps button[aria-pressed=true]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
 .internal-face{max-width:280px;margin:24px auto}.internal-face svg{width:100%;display:block}
 .face-reading{text-align:center;font-size:17px}.face-reading output{color:var(--accent)}
 .mechanism-layout{display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:24px;align-items:start}
@@ -46,24 +46,24 @@
 .pressure-key{display:flex;flex-wrap:wrap;gap:8px 20px;font-size:13px}
 .pressure-key span:first-child{border-left:4px solid #e8bb74;padding-left:8px}.pressure-key span:last-child{border-left:4px dashed #79c9de;padding-left:8px}
 .diagram-scroll{overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:#12191c}
-.asi-diagram{display:block;width:100%;max-width:800px;margin:auto}
-.asi-diagram .asi-case{fill:#79c9de0d;stroke:#84979e;stroke-width:3;stroke-dasharray:8 5}
-.asi-diagram .static-path path{stroke:#79c9de;stroke-width:3;fill:none;stroke-dasharray:7 4}
-.asi-diagram .pitot-path path{stroke:var(--accent);stroke-width:6;fill:none}
-.asi-diagram .capsule-shell{fill:#b5813d55;stroke:var(--accent);stroke-width:3}
-.asi-diagram .capsule-fold{fill:none;stroke:#e8bb74;stroke-width:2}
-.asi-diagram .connecting-link,.asi-diagram .lever{stroke:#ebeddf;stroke-width:6;stroke-linecap:round;fill:none}
-.asi-diagram .sector{fill:#58676c;stroke:#c4d2d6;stroke-width:3}
-.asi-diagram .pinion{stroke:#e8bb74;stroke-width:3;fill:#29353a}
-.asi-diagram .pointer-shaft{stroke:#94a7ae;stroke-width:9}
-.asi-diagram .front-dial{fill:#0a1013;stroke:#74858c;stroke-width:5}
-.asi-diagram .dial-tick{stroke:#f0f0e9;stroke-width:2}
-.asi-diagram .dial-number{font-size:15px}.asi-diagram .dial-unit{font-size:13px;fill:#c3cfcd}
-.asi-diagram .cutaway-pointer{fill:#f0f0e7;stroke:#14191c;stroke-width:1}
-.asi-diagram .pivot,.asi-diagram .link-joint{fill:#182327;stroke:#d6e0de;stroke-width:2}
-.asi-diagram .component-marker circle{fill:#172025;stroke:#a8bec7;stroke-width:2}.asi-diagram .component-marker text{font-size:16px;font-weight:bold}
-.asi-diagram .component-active{filter:drop-shadow(0 0 4px #e8bb7499)}
-.asi-diagram .component-active .component-marker circle{stroke:#e8bb74;stroke-width:4}
+.internal-diagram{display:block;width:100%;max-width:800px;margin:auto}
+.internal-diagram .instrument-case{fill:#79c9de0d;stroke:#84979e;stroke-width:3;stroke-dasharray:8 5}
+.internal-diagram .static-path path{stroke:#79c9de;stroke-width:3;fill:none;stroke-dasharray:7 4}
+.internal-diagram .pitot-path path{stroke:var(--accent);stroke-width:6;fill:none}
+.internal-diagram .capsule-shell{fill:#b5813d55;stroke:var(--accent);stroke-width:3}
+.internal-diagram .capsule-fold{fill:none;stroke:#e8bb74;stroke-width:2}
+.internal-diagram .connecting-link,.internal-diagram .lever{stroke:#ebeddf;stroke-width:6;stroke-linecap:round;fill:none}
+.internal-diagram .sector{fill:#58676c;stroke:#c4d2d6;stroke-width:3}
+.internal-diagram .pinion{stroke:#e8bb74;stroke-width:3;fill:#29353a}
+.internal-diagram .pointer-shaft{stroke:#94a7ae;stroke-width:9}
+.internal-diagram .front-dial{fill:#0a1013;stroke:#74858c;stroke-width:5}
+.internal-diagram .dial-tick{stroke:#f0f0e9;stroke-width:2}
+.internal-diagram .dial-number{font-size:15px}.internal-diagram .dial-unit{font-size:13px;fill:#c3cfcd}
+.internal-diagram .cutaway-pointer{fill:#f0f0e7;stroke:#14191c;stroke-width:1}
+.internal-diagram .pivot,.internal-diagram .link-joint{fill:#182327;stroke:#d6e0de;stroke-width:2}
+.internal-diagram .component-marker circle{fill:#172025;stroke:#a8bec7;stroke-width:2}.internal-diagram .component-marker text{font-size:16px;font-weight:bold}
+.internal-diagram .component-active{filter:drop-shadow(0 0 4px #e8bb7499)}
+.internal-diagram .component-active .component-marker circle{stroke:#e8bb74;stroke-width:4}
 .chain-active .measurement-chain li{border-left:3px solid #e8bb7480}
 .component-legend{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:14px 0}
 .component-legend button{font-size:13px}.component-legend button span{display:inline-block;margin-right:5px;color:var(--accent);font-weight:700}
@@ -72,12 +72,25 @@
 .measurement-chain ol{list-style:none;margin:0;padding:0;display:grid;gap:16px}.measurement-chain li{padding-left:10px;display:grid;gap:4px}.measurement-chain li>span:first-child{color:var(--muted);font-size:12px}.measurement-chain output{font-size:17px;color:var(--accent);font-variant-numeric:tabular-nums}.measurement-chain li>span:last-child{font-size:13px}
 .pressure-reference{font-size:13px;border-top:1px solid var(--line);margin-top:18px;padding-top:12px}.pressure-reference div{margin-top:10px}.pressure-reference dt{color:var(--muted)}.pressure-reference dd{margin:4px 0}
 .internal-note{color:var(--muted);font-size:12px;line-height:1.65}
-.asi-steps{list-style:none;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:20px}.asi-steps strong{display:block;color:var(--accent);font-size:12px;margin-bottom:4px}.asi-steps button{height:100%;font-size:13px;width:100%}
-@media(max-width:760px){.internal-panel{padding:16px}.mechanism-layout{grid-template-columns:minmax(0,1fr)}.asi-steps{grid-template-columns:repeat(2,minmax(0,1fr))}.measurement-chain ol{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:520px){.internal-panel{padding:12px}.internal-tabs{flex-direction:column}.internal-tabs button{text-align:center}.asi-diagram{min-width:480px}.diagram-scroll:after{content:'Scroll the diagram to inspect all components →';display:block;padding:8px;color:var(--muted);font-size:12px}.component-legend,.asi-steps,.measurement-chain ol{grid-template-columns:minmax(0,1fr)}}
+.internal-steps{list-style:none;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:20px}.internal-steps strong{display:block;color:var(--accent);font-size:12px;margin-bottom:4px}.internal-steps button{height:100%;font-size:13px;width:100%}
+@media(max-width:760px){.internal-panel{padding:16px}.mechanism-layout{grid-template-columns:minmax(0,1fr)}.internal-steps{grid-template-columns:repeat(2,minmax(0,1fr))}.measurement-chain ol{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.internal-panel{padding:12px}.internal-tabs{flex-direction:column}.internal-tabs button{text-align:center}.internal-diagram{min-width:480px}.diagram-scroll:after{content:'Scroll the diagram to inspect all components →';display:block;padding:8px;color:var(--muted);font-size:12px}.component-legend,.internal-steps,.measurement-chain ol{grid-template-columns:minmax(0,1fr)}}
 @media(prefers-reduced-motion:reduce){.internal-panel *{scroll-behavior:auto;transition:none}}
 
 @container(max-width:760px){.mechanism-layout{grid-template-columns:minmax(0,1fr)}.measurement-chain ol{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@container(max-width:400px){.measurement-chain ol,.asi-steps{grid-template-columns:minmax(0,1fr)}}
+@container(max-width:400px){.measurement-chain ol,.internal-steps{grid-template-columns:minmax(0,1fr)}}
 
-.asi-diagram .shaft-label-line{fill:none;stroke:#a8bec7;stroke-width:1.5}
+.internal-diagram .shaft-label-line{fill:none;stroke:#a8bec7;stroke-width:1.5}
+
+.altimeter-diagram .stack-support{stroke:#84979e;stroke-width:6;fill:none}
+.altimeter-diagram .output-gear{stroke:var(--accent);stroke-width:2;fill:#29353a}
+.altimeter-diagram .transmission-path{stroke:var(--accent);stroke-width:3;fill:none}
+.altimeter-diagram .pointer-shaft{stroke-width:3;stroke-dasharray:6 3}
+.altimeter-diagram .outlined-pointer{fill:none;stroke:var(--accent);stroke-width:2}
+.altimeter-diagram .mechanism-label{font-size:12px;fill:#c3cfcd}
+.altimeter-diagram .gear-label{font-size:11px;fill:var(--accent)}
+.altimeter-diagram .capsule-bridge{stroke:var(--accent);stroke-width:3;fill:none}
+/* The wider altimeter schematic needs room for three output paths and labels. */
+.altimeter-diagram{min-width:640px}
+@container(max-width:1000px){#altimeter-internal .mechanism-layout{grid-template-columns:minmax(0,1fr)}#altimeter-internal .measurement-chain ol{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@container(max-width:400px){#altimeter-internal .measurement-chain ol{grid-template-columns:minmax(0,1fr)}}

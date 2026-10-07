@@ -1,3 +1,4 @@
+import {createAltimeterInternalView} from './internal/altimeter/view.js';
 import {createAsiInternalView} from './internal/asi/view.js';
 import {variables,initialState,setVariable,smoothState} from './model.js';
 import {instruments} from './catalog.js';
@@ -6,7 +7,12 @@ let focus=initialFocus();
 const target=initialState(),current=initialState();
 const grid=document.querySelector('#instruments'),controls=document.querySelector('#controls');
 const renderers=instruments.map((instrument,index)=>{const button=document.createElement('button');button.type='button';button.className='instrument';button.dataset.instrument=instrument.id;button.setAttribute('aria-pressed','false');button.setAttribute('aria-label',`Learn about the ${instrument.name}`);button.innerHTML=`<div class="drawing"></div><span class="instrument-name">${instrument.name}</span><span class="instrument-value"></span>`;grid.append(button);button.addEventListener('click',()=>select(instrument));return {update:instrument.create(button.querySelector('.drawing')),read:instrument.read,value:button.querySelector('.instrument-value')}});
-const internalView=createAsiInternalView(document.querySelector('#asi-internal'));
+const internalViews={airspeed:createAsiInternalView(document.querySelector('#asi-internal')),altimeter:createAltimeterInternalView(document.querySelector('#altimeter-internal'))};
+const internalView={
+  update(state) {Object.values(internalViews).forEach(view=>view.update(state));},
+  select(id) {Object.values(internalViews).forEach(view=>view.select(id));},
+  open() {internalViews[focus.instrument]?.open();}
+};
 let aircraftView;
 let disposed = false;
 function aircraftFailure(error) {
@@ -49,7 +55,7 @@ function applyFocus() {
   });
   document.querySelectorAll('[data-cue]').forEach(field=>field.classList.toggle('linked',linked.variables.includes(field.dataset.cue)));
   document.querySelector('#focus-summary').textContent=focus.enabled ? `Focus: ${instruments.find(i=>i.id===focus.instrument).name}` : 'Full cockpit view';
-  document.querySelector('#asi-internal').classList.toggle('focus-linked',focus.enabled&&focus.instrument==='airspeed');
+  for(const id of Object.keys(internalViews))document.querySelector(id==='airspeed'?'#asi-internal':'#altimeter-internal').classList.toggle('focus-linked',focus.enabled&&focus.instrument===id);
   updateAircraft();
 }
 function select(instrument) {
@@ -74,7 +80,7 @@ function select(instrument) {
     </dl>
     <p id="relationship">${link.relationship}</p>
     ${instrument.note ? `<div class="note">${instrument.note}</div>` : ''}
-    ${instrument.id==='airspeed' ? '<button type="button" id="inside-instrument" aria-controls="asi-internal">Inside the Instrument</button>' : '<p class="internal-unavailable">Internal mechanism view will be added in a later phase.</p>'}`;
+    ${internalViews[instrument.id] ? `<button type="button" id="inside-instrument" aria-controls="${instrument.id==='airspeed'?'asi':'altimeter'}-internal">Inside the Instrument</button>` : '<p class="internal-unavailable">Internal mechanism view will be added in a later phase.</p>'}`;
   internalView.select(instrument.id);
   internalView.update(current);
   document.querySelector('#inside-instrument')?.addEventListener('click',()=>internalView.open());

@@ -1,3 +1,4 @@
+import {bindInternalNavigation} from '../navigation.js';
 import {createAirspeed} from '../../instruments/airspeed.js';
 import {mechanismState} from './model.js';
 import {components, steps} from './content.js';
@@ -6,11 +7,11 @@ import {components, steps} from './content.js';
 // Numbered components share a keyboard-accessible HTML legend, keeping labels readable.
 const marker = (number,x,y) => `<g class="component-marker"><circle cx="${x}" cy="${y}" r="13"/><text x="${x}" y="${y+5}">${number}</text></g>`;
 function diagram() {
-  return `<svg class="asi-diagram" viewBox="0 0 600 410" role="img" aria-labelledby="asi-svg-title asi-svg-desc">
+  return `<svg class="asi-diagram internal-diagram" viewBox="0 0 600 410" role="img" aria-labelledby="asi-svg-title asi-svg-desc">
   <title id="asi-svg-title">Mechanical airspeed indicator conceptual cutaway</title>
   <desc id="asi-svg-desc">Pitot total pressure enters inside the capsule. Static pressure surrounds it in the case. Capsule deflection moves a link, lever and gear, transmitting motion through a shaft to the front pointer. Numbers correspond to component buttons below.</desc>
   <defs><marker id="asi-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="context-stroke"/></marker></defs>
-  <path class="asi-case" d="M100 75L360 75L415 125L415 345L100 345Z"/>
+  <path class="asi-case instrument-case" d="M100 75L360 75L415 125L415 345L100 345Z"/>
   <g data-component="static" class="static-path"><path d="M35 105H155V155M125 155H335M125 190H335" marker-end="url(#asi-flow)"/>${marker(2,65,105)}</g>
   <g data-component="pitot" class="pitot-path"><path d="M35 300H135" marker-end="url(#asi-flow)"/>${marker(1,65,300)}</g>
   <g data-component="capsule"><path class="capsule-shell" d="M135 266Q110 300 135 334H190Q215 300 190 266Z"/><path class="capsule-fold" d="M145 270Q125 300 145 330M158 270Q138 300 158 330M171 270Q151 300 171 330"/>${marker(3,155,355)}</g>
@@ -30,35 +31,15 @@ export function createAsiInternalView(panel) {
     <div class="internal-tabs" role="tablist" aria-label="Airspeed learning views">${[['face','Instrument Face'],['cutaway','Internal Cutaway'],['works','How It Works']].map(([id,label],i)=>`<button type="button" role="tab" id="asi-tab-${id}" aria-controls="asi-panel-${id}" aria-selected="${i===0}" tabindex="${i===0?0:-1}">${label}</button>`).join('')}</div>
     <div id="asi-panel-face" role="tabpanel" aria-labelledby="asi-tab-face"><div class="internal-face"></div><p class="face-reading">Indicated airspeed: <output data-reading="face"></output></p><p class="internal-note">The same teaching dial and indication as the cockpit ASI.</p></div>
     <div id="asi-panel-cutaway" role="tabpanel" aria-labelledby="asi-tab-cutaway" hidden></div>
-    <div id="asi-panel-works" role="tabpanel" aria-labelledby="asi-tab-works" hidden><ol class="asi-steps">${steps.map(([component,label],i)=>`<li><button type="button" data-step="${i}" data-step-component="${component}" aria-pressed="false"><strong>Step ${i+1}</strong> ${label}</button></li>`).join('')}</ol></div>
+    <div id="asi-panel-works" role="tabpanel" aria-labelledby="asi-tab-works" hidden><ol class="asi-steps internal-steps">${steps.map(([component,label],i)=>`<li><button type="button" data-step="${i}" data-step-component="${component}" aria-pressed="false"><strong>Step ${i+1}</strong> ${label}</button></li>`).join('')}</ol></div>
     <div class="internal-mechanism" hidden><div class="mechanism-layout"><div><p class="pressure-key"><span>Pt · Pitot / total pressure → inside capsule</span><span>Ps · Static pressure → outside capsule</span></p><div class="diagram-scroll" tabindex="0" role="region" aria-label="Cutaway diagram; scroll horizontally on narrow screens">${diagram()}</div><p class="diagram-caption">Case shown open; front dial shown alongside. Numbers identify components.</p><div class="component-legend" aria-label="Cutaway components">${components.map(([id,label],i)=>`<button type="button" data-select-component="${id}" aria-pressed="false"><span>${i+1}</span> ${label}</button>`).join('')}</div><p class="component-explanation" role="status">Select a numbered component or a teaching step to learn its role.</p></div>
     <div class="measurement-chain"><h3>Measurement chain</h3><ol><li><span>Input · Airspeed</span><output data-reading="ias"></output></li><li><span>Pressure · ΔP = Pt − Ps ≈ q</span><output data-reading="pressure"></output></li><li><span>Sensor · Diaphragm deflection</span><output data-reading="deflection"></output></li><li><span>Conversion · Linkage / gear motion</span><span>Capsule → link → lever → shaft</span></li><li><span>Output · Pointer</span><output data-reading="pointer"></output></li></ol><dl class="pressure-reference"><div><dt>Static pressure</dt><dd>Reference (fixed)</dd></div><div><dt>Dynamic pressure q</dt><dd data-reading="dynamic"></dd></div></dl><p class="internal-note">q = ½ρV² · ρ = 1.225 kg/m³<br>V converted from knots to m/s.</p><p class="internal-note">Pressure values use a simplified fixed-density teaching model. These are educational reference values, not exact aircraft air-data values. Altitude does not change this calculation.</p></div></div></div>
     <p class="internal-note">Internal geometry and displacement are simplified for teaching. Pressure is a physics-based reference calculation; deflection and linkage travel are normalized visual mappings, not calibrated mechanical dimensions.</p>`;
   const faceUpdate = createAirspeed(panel.querySelector('.internal-face'));
-  const mechanism = panel.querySelector('.internal-mechanism');
-  const tabs = [...panel.querySelectorAll('[role=tab]')];
+  const navigation = bindInternalNavigation(panel, {prefix:'asi', instrument:'airspeed', components});
   let lastAirspeed;
-  function setView(id, focusTab=false) {
-    tabs.forEach(tab=>{const active=tab.id===`asi-tab-${id}`;tab.setAttribute('aria-selected',String(active));tab.tabIndex=active?0:-1;if(active&&focusTab)tab.focus();});
-    panel.querySelectorAll('[role=tabpanel]').forEach(body=>body.hidden=body.id!==`asi-panel-${id}`);
-    mechanism.hidden=id==='face';
-    // One live diagram serves both cutaway and guided steps without duplicate SVG IDs.
-    panel.querySelector(`#asi-panel-${id}`).append(mechanism);
-  }
-  tabs.forEach((tab,index)=>{
-    tab.addEventListener('click',()=>setView(tab.id.replace('asi-tab-','')));
-    tab.addEventListener('keydown',event=>{let next;if(event.key==='ArrowRight')next=(index+1)%3;if(event.key==='ArrowLeft')next=(index+2)%3;if(event.key==='Home')next=0;if(event.key==='End')next=2;if(next!==undefined){event.preventDefault();setView(tabs[next].id.replace('asi-tab-',''),true);}});
-  });
-  function highlight(id) {
-    panel.querySelectorAll('[data-component]').forEach(part=>part.classList.toggle('component-active',part.dataset.component===id));
-    panel.querySelectorAll('[data-select-component]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.selectComponent===id)));
-    panel.querySelector('.component-explanation').textContent=components.find(component=>component[0]===id)[2];
-  }
-  panel.querySelectorAll('[data-select-component]').forEach(button=>button.addEventListener('click',()=>{highlight(button.dataset.selectComponent);panel.querySelectorAll('[data-step]').forEach(step=>step.setAttribute('aria-pressed','false'));}));
-  panel.querySelectorAll('[data-step]').forEach(button=>button.addEventListener('click',()=>{highlight(button.dataset.stepComponent);panel.querySelectorAll('[data-step]').forEach(step=>step.setAttribute('aria-pressed',String(step===button)));}));
   return {
-    select(instrument) {panel.hidden=instrument!=='airspeed';},
-    open() {panel.hidden=false;setView('cutaway');panel.scrollIntoView({behavior:'auto',block:'start'});tabs[1].focus({preventScroll:true});},
+    ...navigation,
     update(state) {
       if(lastAirspeed===state.airspeed)return;
       lastAirspeed=state.airspeed;

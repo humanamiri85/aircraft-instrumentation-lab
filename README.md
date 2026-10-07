@@ -185,3 +185,67 @@ rigid-lever geometry and shared pointer calibration checks. `npm run test:browse
 now also exercises 110/40/180 kt, tabs, component/step selection, keyboard access,
 Teaching Focus, Reset, altitude independence, responsive layouts and both motion
 preferences, including operation without WebGL. Phase 3A screenshots go to `/tmp`.
+
+## Phase 3B — Altimeter Internal Working View
+
+Select **Altimeter**, then **Inside the Instrument**. **Instrument Face**,
+**Internal Cutaway** and **How It Works** use the existing Altitude control;
+there is no additional control or independent instrument state. Six selectable
+steps and nine keyboard-accessible component buttons trace static pressure into
+sealed aneroid wafers, the capsule stack, linkage, lever, conceptual gear train,
+concentric pointer shafts and the front dial. Other unimplemented instruments
+retain their later-phase placeholder. ASI behavior and all Phase 1/2 features
+remain available. Shared navigation in `js/internal/navigation.js` handles tabs,
+Arrow/Home/End keys, component emphasis and moving one diagram between views.
+
+**Physical model — altitude to static pressure.** The dry standard troposphere
+uses `P = P₀ (1 − Lh/T₀)^(g/(R L))`, with height `h = altitude_ft × 0.3048` m,
+`P₀ = 101325 Pa`, `T₀ = 288.15 K`, lapse rate `L = 0.0065 K/m`,
+`g = 9.80665 m/s²` and specific gas constant `R = 287.05 J/(kg·K)`.
+This hydrostatic/ideal-gas teaching relationship is limited to the existing
+0–10,000 ft control range. Reference static pressures are **101.3 kPa at 0 ft**,
+**84.3 kPa at 5,000 ft** and **69.7 kPa at 10,000 ft**. This model does not
+change the ASI's fixed-density calculation or model pressure-setting effects.
+
+**Educational visualization — pressure to capsule expansion.** Each aneroid
+wafer is sealed and nearly evacuated: static pressure acts around it, not through
+an inlet into it. Lower external pressure permits expansion; higher pressure
+causes contraction. Expansion is bounded as
+`(P₀ − P(h)) / (P₀ − P(10000 ft))`, giving **0%, about 54%, and 100% visual
+scale** at 0, 5,000 and 10,000 ft. Zero visual scale still shows finite wafer
+thickness; it does not mean an actual capsule has zero thickness.
+**Capsule displacement shown is conceptual.** No real aneroid material law or
+measured mechanical travel is claimed.
+
+**Conceptual mechanism and pointer synchronization.** The stack moves its attached
+link and pivoted lever; both retain fixed lengths in drawing units. A schematic
+gear train and three output shafts illustrate the calibrated pointer rotations.
+The long hundreds hand turns once per 1,000 ft, the short thousands hand once
+per 10,000 ft, and the outlined ten-thousands marker once per 100,000 ft:
+continuous angular ratios **100:10:1**. `altitudeAngles` from the cockpit
+altimeter supplies the cutaway pointers and gear outputs; the face view uses the
+original `createAltimeter` renderer. Gear sizes, spacing and transmission paths
+are schematic and do not claim literal tooth ratios or certified geometry.
+**Internal geometry and capsule displacement are simplified for teaching.**
+
+The live measurement chain shows altitude, static pressure, capsule expansion,
+mechanical conversion and indicated altitude. Reset restores the shared 3,500 ft
+initial state while retaining instrument selection and view. Teaching Focus
+links Altitude, ALT and the existing height cue. Reduced-motion users get the same
+immediate indications; no animation loop is added. Narrow screens scroll only
+the diagram; component explanations and readings remain stacked and readable.
+The textual mechanism also works without WebGL.
+
+Altitude remains independent of vertical speed, pitch, airspeed, bank and heading.
+There is no flight dynamics or cross-instrument density coupling. Barometric
+adjustment (QNH/QFE), blockage, lag, hysteresis, temperature correction, failures,
+VSI internals and gyro internals remain outside this phase.
+
+The module lives in `js/internal/altimeter/{model,view,content}.js`. `npm test`
+covers reference pressures, monotonic pressure/expansion, bounded mappings,
+rigid linkage geometry and synchronized pointer ratios. `npm run test:browser`
+adds 0/5,000/10,000 ft checks, all three cockpit/face/cutaway pointers and gear
+outputs, independent controls and unchanged ASI pressure, tabs, steps, component
+keyboard use, Teaching Focus, Reset, desktop/tablet/390px/320px layouts, and both
+motion preferences with normal WebGL and WebGL disabled. Screenshots are written
+to `/tmp/phase3b-*.png`; normal startup must have no console or network errors.
