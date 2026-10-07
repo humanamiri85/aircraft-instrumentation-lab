@@ -4,7 +4,7 @@ export async function checkGyroFoundation(page,scenario) {
   const panel=page.locator('#gyro-internal');
   for(const instrument of ['attitude','heading','turn']) {
     await page.locator(`[data-instrument="${instrument}"]`).click();
-    assert.equal(await page.locator('#inside-instrument').count(),instrument==='turn'?0:1,'attitude and heading have instrument-specific cutaways; turn remains a placeholder');
+    assert.equal(await page.locator('#inside-instrument').count(),1,'all gyro instruments have instrument-specific cutaways');
     await page.locator('#gyro-fundamentals').click();
     assert.equal(await panel.isVisible(),true);
     assert.equal(await panel.locator('[role=tab][aria-selected=true]').textContent(),'Gyro Assembly');
