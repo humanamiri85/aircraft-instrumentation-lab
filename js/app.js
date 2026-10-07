@@ -1,3 +1,4 @@
+import {createAttitudeInternalView} from './internal/attitude/view.js';
 import {createGyroView,gyroInstruments} from './internal/gyro/view.js';
 import {createVsiInternalView} from './internal/vsi/view.js';
 import {initialLag,advanceLag,mechanismState as vsiMechanism} from './internal/vsi/model.js';
@@ -12,10 +13,10 @@ const motion=matchMedia('(prefers-reduced-motion: reduce)');
 const target=initialState(),current=initialState();
 const grid=document.querySelector('#instruments'),controls=document.querySelector('#controls');
 const renderers=instruments.map((instrument,index)=>{const button=document.createElement('button');button.type='button';button.className='instrument';button.dataset.instrument=instrument.id;button.setAttribute('aria-pressed','false');button.setAttribute('aria-label',`Learn about the ${instrument.name}`);button.innerHTML=`<div class="drawing"></div><span class="instrument-name">${instrument.name}</span><span class="instrument-value"></span>`;grid.append(button);button.addEventListener('click',()=>select(instrument));return {update:instrument.create(button.querySelector('.drawing')),id:instrument.id,read:instrument.read,value:button.querySelector('.instrument-value')}});
-const internalViews={airspeed:createAsiInternalView(document.querySelector('#asi-internal')),altimeter:createAltimeterInternalView(document.querySelector('#altimeter-internal')),vsi:createVsiInternalView(document.querySelector('#vsi-internal'))};
+const internalViews={attitude:createAttitudeInternalView(document.querySelector('#attitude-internal')),airspeed:createAsiInternalView(document.querySelector('#asi-internal')),altimeter:createAltimeterInternalView(document.querySelector('#altimeter-internal')),vsi:createVsiInternalView(document.querySelector('#vsi-internal'))};
 const gyroView=createGyroView(document.querySelector('#gyro-internal'));
 const internalView={
-  update(state,dt=0) {Object.values(internalViews).forEach(view=>view.update(state,vsiLag,motion.matches));gyroView.update(state,dt,motion.matches);},
+  update(state,dt=0) {Object.values(internalViews).forEach(view=>view.update(state,vsiLag,motion.matches,dt));gyroView.update(state,dt,motion.matches);},
   select(id) {Object.values(internalViews).forEach(view=>view.select(id));gyroView.select(id);},
   open() {internalViews[focus.instrument]?.open();}
 };
@@ -95,7 +96,8 @@ function select(instrument) {
     </dl>
     <p id="relationship">${link.relationship}</p>
     ${instrument.note ? `<div class="note">${instrument.note}</div>` : ''}
-    ${internalViews[instrument.id] ? `<button type="button" id="inside-instrument" aria-controls="${instrument.id==='airspeed'?'asi':instrument.id}-internal">Inside the Instrument</button>` : '<p class="internal-unavailable">Internal mechanism view will be added in a later phase.</p><button type="button" id="gyro-fundamentals" aria-controls="gyro-internal">Gyroscope Fundamentals</button>'}`;
+    ${internalViews[instrument.id] ? `<button type="button" id="inside-instrument" aria-controls="${instrument.id==='airspeed'?'asi':instrument.id}-internal">Inside the Instrument</button>` : '<p class="internal-unavailable">Internal mechanism view will be added in a later phase.</p>'}
+    ${gyroInstruments.includes(instrument.id)?'<button type="button" id="gyro-fundamentals" aria-controls="gyro-internal">Gyroscope Fundamentals</button>':''}`;
   internalView.select(instrument.id);
   internalView.update(current);
   document.querySelector('#inside-instrument')?.addEventListener('click',()=>internalView.open());

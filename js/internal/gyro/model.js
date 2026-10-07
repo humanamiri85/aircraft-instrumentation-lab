@@ -29,7 +29,5 @@ export function gyroState(state) {
     outerAxis:new Vector3(0,1,0).applyQuaternion(body),
     innerAxis:new Vector3(1,0,0).applyQuaternion(body.clone().multiply(outerRotation))};
 }
-export function advanceSpin(phase, dt, reduced=false) {
-  // Deliberately slow visual cue, not an instrument rotor's physical RPM.
-  return reduced ? 0 : (phase + Math.max(0,Math.min(Number.isFinite(dt)?dt:0,.1))*1.2) % (2*Math.PI);
-}
+export {advanceSpin} from './motion.js';
+export {verticalReference} from './reference.js';

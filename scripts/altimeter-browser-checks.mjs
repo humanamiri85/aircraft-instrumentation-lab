@@ -107,7 +107,8 @@ export async function checkAltimeterInternal(page,scenario) {
     await page.locator(`[data-instrument="${id}"]`).click();
     assert.equal(await panel.isVisible(),false);
     assert.equal(await page.locator('#asi-internal').isVisible(),false);
-    assert.match(await page.locator('.internal-unavailable').textContent(),/later phase/);
+    if(id==='attitude')assert.equal(await page.locator('#attitude-internal').isVisible(),true);
+    else assert.match(await page.locator('.internal-unavailable').textContent(),/later phase/);
   }
   await page.locator('[data-instrument="airspeed"]').click();
   assert.equal(await panel.isVisible(),false);assert.equal(await asi.isVisible(),true);

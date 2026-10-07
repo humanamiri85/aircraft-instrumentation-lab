@@ -112,6 +112,19 @@
 #gyro-fundamentals{font:inherit;color:inherit;background:#141b1f;border:1px solid #526167;border-radius:5px;padding:10px 12px;cursor:pointer}
 .gyro-viewport{position:relative;width:100%;height:420px;overflow:hidden;border:1px solid var(--line);border-radius:6px;background:#101b23}
 .gyro-viewport canvas{display:block;width:100%;height:100%}.gyro-status{padding:20px;color:var(--muted)}
+.attitude-diagram text{fill:#dce6e7;text-anchor:middle;font-size:10px}
+.attitude-diagram .projection-title{font-size:16px;font-weight:bold}
+.attitude-diagram .gyro-outer{fill:none;stroke:#79c9de;stroke-width:3}
+.attitude-diagram .gyro-inner{fill:none;stroke:#e7e9df;stroke-width:3}
+.attitude-diagram .gyro-wheel{fill:#bc8744;stroke:#f3c57a;stroke-width:2}
+.attitude-diagram [data-rotor-spokes]{stroke:#172832;stroke-width:3}
+.attitude-diagram .gyro-shaft,.attitude-diagram .stable-horizon{stroke:#f3c57a;stroke-width:3;fill:none}
+.attitude-diagram .gyro-bearing{stroke:#e7e9df;stroke-width:4;fill:none}
+.attitude-diagram .case-symbol{stroke:#94bd9c;stroke-width:3;fill:none}
+.attitude-display-path{margin:16px 0;padding:12px;border:1px dashed var(--accent);font-size:14px}
+.attitude-cutaway-display{border:1px solid var(--line);padding:12px;text-align:center}
+.attitude-cutaway-display p,.attitude-spin-note{font-size:13px;color:var(--muted)}
+.internal-panel .component-active{filter:drop-shadow(0 0 4px #e8bb7499)}
 .gyro-axis-key{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.gyro-axis-key dt{font-weight:bold}.gyro-axis-key dd{margin:4px 0;color:var(--muted);font-size:13px}
 .gyro-reading,.gyro-relative,.gyro-motion,.gyro-mode-description{font-size:13px;line-height:1.6}
 @container(max-width:500px){.gyro-axis-key{grid-template-columns:minmax(0,1fr)}.gyro-viewport{height:320px}}
