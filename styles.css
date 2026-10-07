@@ -94,3 +94,16 @@
 .altimeter-diagram{min-width:640px}
 @container(max-width:1000px){#altimeter-internal .mechanism-layout{grid-template-columns:minmax(0,1fr)}#altimeter-internal .measurement-chain ol{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @container(max-width:400px){#altimeter-internal .measurement-chain ol{grid-template-columns:minmax(0,1fr)}}
+
+/* Phase 3C: pressure channels remain distinct without relying on motion. */
+.vsi-diagram{min-width:640px}
+.vsi-diagram text{fill:#c3cfcd;font-size:12px;text-anchor:middle}
+.vsi-diagram .restriction{stroke:#79c9de;stroke-width:4;fill:none}
+.vsi-diagram .pressure-baseline{stroke:#526167;stroke-width:2}
+.vsi-diagram .pressure-bar{stroke-width:7;stroke-linecap:round}
+.vsi-diagram .fast-bar{stroke:#e8bb74}.vsi-diagram .slow-bar{stroke:#79c9de;stroke-dasharray:6 3}
+.vsi-diagram .pointer-shaft{stroke-width:4;stroke-dasharray:6 3}
+@container(max-width:1000px){#vsi-internal .mechanism-layout{grid-template-columns:minmax(0,1fr)}}
+.vsi-diagram .pressure-trend{fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.vsi-diagram .fast-trend{stroke:#e8bb74}.vsi-diagram .slow-trend{stroke:#79c9de}
+.vsi-diagram .chamber-label{font-size:8px}

@@ -103,7 +103,7 @@ export async function checkAltimeterInternal(page,scenario) {
     if(scenario==='normal')await page.screenshot({path:`/tmp/phase3b-${name}.png`,fullPage:true});
   }
   await page.setViewportSize({width:1440,height:1000});
-  for(const id of ['vsi','attitude','turn','heading']){
+  for(const id of ['attitude','turn','heading']){
     await page.locator(`[data-instrument="${id}"]`).click();
     assert.equal(await panel.isVisible(),false);
     assert.equal(await page.locator('#asi-internal').isVisible(),false);

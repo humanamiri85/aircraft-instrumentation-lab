@@ -249,3 +249,63 @@ outputs, independent controls and unchanged ASI pressure, tabs, steps, component
 keyboard use, Teaching Focus, Reset, desktop/tablet/390px/320px layouts, and both
 motion preferences with normal WebGL and WebGL disabled. Screenshots are written
 to `/tmp/phase3b-*.png`; normal startup must have no console or network errors.
+
+## Phase 3C — Vertical Speed Indicator Internal Working View
+
+Select **Vertical Speed Indicator**, then **Inside the Instrument**. The existing
+shared navigation provides **Instrument Face**, **Internal Cutaway** and **How It
+Works**, with seven teaching steps and nine keyboard-accessible component buttons.
+Use the existing −2,000 to +2,000 ft/min Vertical Speed control; no new slider or
+animation loop is introduced. Teaching Focus links the VSI, its control and the
+existing vertical-speed aircraft cue. Reset clears the lag immediately while
+retaining instrument selection, view and focus.
+
+**Physical concept.** Static pressure reaches the diaphragm quickly through a
+direct connection. The surrounding case receives pressure through a calibrated
+leak / restriction and responds more slowly. In climb, decreasing diaphragm
+pressure leaves the case at a higher pressure; in descent the difference reverses.
+Higher case pressure contracts the diaphragm in climb; lower case pressure
+permits expansion in descent. This motion drives a conceptual linkage and
+pointer shaft. Sustained pressure change maintains a difference. When altitude
+stops changing (represented here by setting Vertical Speed to zero), pressures
+equalize and the pointer returns toward zero. The model does not integrate
+vertical speed into aircraft altitude.
+
+**Educational dynamic model.** The diaphragm follows ambient pressure immediately;
+the case uses a first-order lag with **τ = 1.5 seconds**, chosen for a short teaching
+interaction, **not a universal or certified VSI time constant**. Let `u = V/S / 2000`
+and `d` be normalized case pressure minus diaphragm pressure. A conceptual ambient
+pressure ramp has `dPambient/dt = −u/τ`; the case follows
+`dPcase/dt = (Pambient − Pcase)/τ`. Eliminating their common pressure drift gives
+`dd/dt = (u − d)/τ`, evaluated exactly for each animation timestep as
+`dnext = u + (dprevious − u) exp(−dt/τ)`. This keeps the differential bounded within
+±1 across the entire control range without inventing absolute pressure units.
+At zero input, `dnext = dprevious exp(−dt/τ)`: displacement and indication decay
+smoothly to neutral. Positive/negative inputs build symmetric climb/descent
+responses and reversing input passes continuously through neutral.
+
+**Visualization and shared indication.** Displacement is a normalized ±32 SVG
+units; linkage geometry is conceptual. The pressure bars show the chamber
+pressures relative to a shared moving midpoint reference (diaphragm `−d/2`, case
+`+d/2`), not absolute static pressure. The indication is `2000 × d` ft/min and uses
+`vsiAngle` from the existing cockpit renderer. Cockpit VSI, internal face and
+cutaway pointer share this same lagged indication; the control and 3D/HUD retain
+the independently selected input. The chain distinguishes input from output.
+No altitude, pitch, airspeed, bank or heading input changes this lag state.
+
+Reduced-motion mode immediately shows the settled differential, displacement and
+pointer, with text describing the omitted transient and zero recovery. Setting
+zero immediately equalizes its pressure bars. Normal mode shows the time-dependent
+build-up and recovery. Only the diagram scrolls on small screens; teaching text
+and buttons remain within the page.
+
+**Pressure lag and displacement are simplified for teaching; actual VSI design
+and calibration vary.** No certification delay values, hysteresis, failure modes,
+blocked static systems, IVSI electronics, gyro internals or flight dynamics are
+introduced. Implementation lives in `js/internal/vsi/{model,view,content}.js`.
+`npm test` covers signs, monotonicity, bounds, timestep independence, ±1,000 ft/min
+steps, zero recovery and shared calibration. `npm run test:browser` adds signed
+response, recovery, synchronized pointers, Reset, variable independence, tabs,
+steps/components, keyboard access, Teaching Focus, desktop/tablet/390px/320px
+layouts, and both motion preferences with and without WebGL. Phase 3C screenshots
+are written to `/tmp/phase3c-*.png`.

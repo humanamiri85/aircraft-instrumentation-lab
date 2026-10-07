@@ -66,7 +66,7 @@ export async function checkAsiInternal(page, scenario) {
     if(scenario==='normal')await page.screenshot({path:`/tmp/phase3a-${name}.png`,fullPage:true});
   }
   await page.setViewportSize({width:1440,height:1000});
-  await page.locator('[data-instrument="vsi"]').click();
+  await page.locator('[data-instrument="heading"]').click();
   assert.equal(await panel.isVisible(),false);
   assert.match(await page.locator('.internal-unavailable').textContent(),/later phase/);
   await page.locator('[data-instrument="airspeed"]').click();
