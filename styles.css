@@ -140,3 +140,9 @@
 .turn-inclinometer{border:1px solid var(--line);border-radius:6px;padding:12px;margin:16px 0;font-size:13px;line-height:1.6}
 .turn-inclinometer svg{display:block;width:100%;max-width:300px;margin:auto}
 .turn-deflection-axis{fill:#101416;stroke:#f0f1e7;stroke-width:1.5}
+
+/* Shared Phase 3 lesson reading order and keyboard focus. */
+.lesson-components{margin-top:20px;border-top:1px solid var(--line);padding-top:6px}
+.internal-tabs button[aria-selected=true],.component-legend button[aria-pressed=true]{font-weight:700}
+.internal-panel [role=tabpanel]:focus-visible,.diagram-scroll:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
+.measurement-chain,.component-explanation{overflow-wrap:anywhere}

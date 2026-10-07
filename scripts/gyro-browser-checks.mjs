@@ -1,3 +1,4 @@
+import {setControl} from './internal-browser-helpers.mjs';
 import assert from 'node:assert/strict';
 import {Quaternion,Vector3} from '../vendor/three/three.core.js';
 export async function checkGyroFoundation(page,scenario) {
@@ -16,7 +17,7 @@ export async function checkGyroFoundation(page,scenario) {
   if(available)assert.equal(await canvas.count(),1);
   else assert.match(await panel.locator('.gyro-status').textContent(),/unavailable/);
   await page.locator('#gyro-tab-rigidity').click();
-  const set=async(key,value)=>page.locator(`#${key}`).evaluate((input,value)=>{input.value=value;input.dispatchEvent(new Event('input',{bubbles:true}));},value);
+  const set=(key,value)=>setControl(page,key,value);
   await set('pitch',0);await set('bank',0);await set('heading',0);
   const identity=available?await canvas.getAttribute('data-body-quaternion'):null;
   for(const [key,values] of [['pitch',[-20,0,20]],['bank',[-45,0,45]],['heading',[0,90,180,270,359]]]) {

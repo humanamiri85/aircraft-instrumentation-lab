@@ -1,10 +1,11 @@
+import {setControl} from './internal-browser-helpers.mjs';
 import assert from 'node:assert/strict';
 export async function checkHeadingInternal(page,scenario) {
   const panel=page.locator('#heading-internal');
   await page.locator('[data-instrument="heading"]').click();
   await page.locator('#inside-instrument').click();
   assert.equal(await panel.isVisible(),true);
-  const set=async(key,value)=>page.locator(`#${key}`).evaluate((input,value)=>{input.value=value;input.dispatchEvent(new Event('input',{bubbles:true}));},value);
+  const set=(key,value)=>setControl(page,key,value);
   await page.emulateMedia({reducedMotion:'reduce'});
   const card=panel.locator('.cutaway-face [data-part="card"]');
   for(const heading of [0,90,180,270,358,359,0,1,2]) {
