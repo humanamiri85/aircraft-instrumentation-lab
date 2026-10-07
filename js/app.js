@@ -1,3 +1,4 @@
+import {createHeadingInternalView} from './internal/heading/view.js';
 import {createAttitudeInternalView} from './internal/attitude/view.js';
 import {createGyroView,gyroInstruments} from './internal/gyro/view.js';
 import {createVsiInternalView} from './internal/vsi/view.js';
@@ -13,7 +14,7 @@ const motion=matchMedia('(prefers-reduced-motion: reduce)');
 const target=initialState(),current=initialState();
 const grid=document.querySelector('#instruments'),controls=document.querySelector('#controls');
 const renderers=instruments.map((instrument,index)=>{const button=document.createElement('button');button.type='button';button.className='instrument';button.dataset.instrument=instrument.id;button.setAttribute('aria-pressed','false');button.setAttribute('aria-label',`Learn about the ${instrument.name}`);button.innerHTML=`<div class="drawing"></div><span class="instrument-name">${instrument.name}</span><span class="instrument-value"></span>`;grid.append(button);button.addEventListener('click',()=>select(instrument));return {update:instrument.create(button.querySelector('.drawing')),id:instrument.id,read:instrument.read,value:button.querySelector('.instrument-value')}});
-const internalViews={attitude:createAttitudeInternalView(document.querySelector('#attitude-internal')),airspeed:createAsiInternalView(document.querySelector('#asi-internal')),altimeter:createAltimeterInternalView(document.querySelector('#altimeter-internal')),vsi:createVsiInternalView(document.querySelector('#vsi-internal'))};
+const internalViews={heading:createHeadingInternalView(document.querySelector('#heading-internal')),attitude:createAttitudeInternalView(document.querySelector('#attitude-internal')),airspeed:createAsiInternalView(document.querySelector('#asi-internal')),altimeter:createAltimeterInternalView(document.querySelector('#altimeter-internal')),vsi:createVsiInternalView(document.querySelector('#vsi-internal'))};
 const gyroView=createGyroView(document.querySelector('#gyro-internal'));
 const internalView={
   update(state,dt=0) {Object.values(internalViews).forEach(view=>view.update(state,vsiLag,motion.matches,dt));gyroView.update(state,dt,motion.matches);},

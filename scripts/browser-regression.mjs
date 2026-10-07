@@ -1,3 +1,4 @@
+import {checkHeadingInternal} from './heading-browser-checks.mjs';
 import {checkAttitudeInternal} from './attitude-browser-checks.mjs';
 import {checkGyroFoundation} from './gyro-browser-checks.mjs';
 import {checkVsiInternal} from './vsi-browser-checks.mjs';
@@ -114,6 +115,7 @@ try {
       await checkVsiInternal(page,scenario);
       await checkGyroFoundation(page,scenario);
       await checkAttitudeInternal(page,scenario);
+      await checkHeadingInternal(page,scenario);
     }
     if(scenario==='normal') {
       for(const [name,width,height] of [['desktop',1440,1000],['tablet',768,1024],['mobile',390,844],['small-mobile',320,700]]) {

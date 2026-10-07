@@ -1,4 +1,4 @@
-# Flight Instrument Lab — Phase 3E
+# Flight Instrument Lab — Phase 3F
 
 Interactive six-pack instrument learning page for undergraduate Measurement & Instrumentation. Plain HTML, CSS, JavaScript and dynamic SVG; no runtime dependencies.
 
@@ -419,3 +419,56 @@ checks ±15° pitch, ±30° bank, combined attitudes, all three views, component
 highlighting, keyboard navigation, Teaching Focus, Reset, desktop/tablet/390px/320px
 layouts, normal/reduced motion and WebGL-disabled operation. Screenshots are saved
 to `/tmp/phase3e-*.png`; normal startup must have no console or network errors.
+
+
+## Phase 3F — Heading Indicator Internal Working View
+
+Select **Heading Indicator**, then **Inside the Instrument**. **Instrument Face**,
+**Internal Cutaway** and **How It Works** use the shared internal navigation.
+The separate **Gyroscope Fundamentals** lesson remains available. Six selectable
+steps and nine component buttons connect rotor, spin axis, gimbals, case,
+directional reference, card drive, compass card and fixed lubber line.
+
+Directional rigidity supplies the physical concept: the aircraft case turns
+clockwise around an ideal stabilized azimuth reference. A world-view yaw projection
+shows the dashed aircraft-fixed case/nose rotating around the solid gold north
+axis. A conceptual pickoff/gear transmits relative yaw to the compass card in a
+separate case-fixed view. The card counter-rotates beneath the fixed gold lubber
+line; N/E/S/W appear at the top for 000/090/180/270°. The live chain reports input,
+stabilized reference, relative motion and displayed heading.
+
+`js/internal/heading/{model,view,content}.js` reuses the shared gyro
+reference module, `advanceSpin` and `gyroAssembly`. Its dependency-free
+`directionalReference` yaw projection is cross-checked against Phase 3D's
+`gyroState` and avoids making the SVG lesson depend on optional Three.js loading. The reference is initially
+aligned to north; pitch/bank bearing motion is omitted from this teaching
+projection. Pitch, bank and other controls never change heading indication.
+Both internal faces use the existing cockpit `createHeading` renderer and
+`headingCardAngle`, so compass scale and lubber geometry have one implementation.
+The aircraft, cockpit and lesson consume the same application heading state.
+
+Shared `wrapHeading` and `headingDelta` retain continuous case/gear angles across
+358/359/000/001/002° in either direction. Card transforms use the cockpit's
+normalized angle without CSS rotation interpolation; equivalent transforms at
+north do not animate a full turn. Existing time-based heading smoothing retains
+its shortest path. No separate heading slider or animation loop is introduced.
+Reduced motion freezes the slow rotor cue while all heading-controlled parts
+still update. SVG supports the complete lesson without WebGL. Tabs support
+Arrow/Home/End keys, component/step buttons support keyboard input, and only the
+diagram scrolls at narrow widths. Labels identify fixed versus stabilized parts
+independently of color.
+
+Gyro and card-drive geometry are simplified for teaching. Real heading indicators
+require periodic realignment because of drift and Earth-rate effects. The rotor
+disk is drawn face-on for visibility despite the horizontal axis in the yaw view;
+bearings and gear are schematic, not a certified mechanism. No drift, Earth-rate
+simulation, transport wander, magnetic synchronization, heading bug, slaving,
+vacuum behavior, failures or Turn Coordinator internals are implemented.
+
+`npm test` adds cardinal/359° calibration, stable gyro reference, north crossings
+in both directions, shared smoothing and pitch/bank independence. The existing
+`npm run test:browser` suite retains Phase 1–3E regressions and adds actual SVG
+cardinal alignment, synchronized readings, wraparound, tabs, keyboard/components,
+steps, Teaching Focus, Reset, desktop/tablet/390px/320px layouts, motion preferences
+and WebGL-disabled operation. Screenshots go to `/tmp/phase3f-*.png`; normal startup
+must have no console or network errors.

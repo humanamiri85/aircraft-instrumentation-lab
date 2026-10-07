@@ -9,3 +9,11 @@ export function verticalReference(state) {
   const bodyUp=[Math.sin(z)*Math.cos(x),Math.cos(z)*Math.cos(x),-Math.sin(x)];
   return {worldUp,bodyUp,pitchBearing:x,bankBearing:z};
 }
+
+
+// Yaw-only directional projection of the Phase 3D north-pointing reference.
+// Keep this SVG-capable helper independent of optional Three.js/WebGL loading.
+export function directionalReference(state) {
+  const {y}=aviationRotation({pitch:0,bank:0,heading:state.heading});
+  return {worldSpin:[0,0,-1],bodySpin:[Math.sin(y),0,-Math.cos(y)],outerBearing:-y};
+}
