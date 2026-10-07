@@ -13,7 +13,7 @@ export function createTurn(element) {
   const part = mount(element,
     text(100, 49, 'TURN COORDINATOR', 8, 'face-title') + text(100, 65, '2 MIN', 8) +
     '<path d="M31 100h12m114 0h12" stroke="#eeeae1" stroke-width="2"/>' +
-    references +
+    `<g data-part="references">${references}</g>` +
     '<g data-part="plane"><path d="M97 82Q100 76 103 82l2 15 41 5v5l-42 -3v15l11 5v4l-15 -3 -15 3v-4l11 -5v-15l-42 3v-5l41 -5Z" fill="#f1f0e8"/></g>' +
     text(39, 137, 'L', 13) + text(161, 137, 'R', 13) +
     '<path d="M61 144Q100 154 139 144v14Q100 169 61 158Z" fill="#c8d0cd" stroke="#f0f1e7"/>' +

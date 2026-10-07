@@ -68,7 +68,7 @@ export async function checkAsiInternal(page, scenario) {
   await page.setViewportSize({width:1440,height:1000});
   await page.locator('[data-instrument="turn"]').click();
   assert.equal(await panel.isVisible(),false);
-  assert.match(await page.locator('.internal-unavailable').textContent(),/later phase/);
+  assert.equal(await page.locator('#turn-internal').isVisible(),true);
   await page.locator('[data-instrument="airspeed"]').click();
   assert.equal(await panel.isVisible(),true);await snapshot(110);
   await page.locator('[data-instrument="attitude"]').click();

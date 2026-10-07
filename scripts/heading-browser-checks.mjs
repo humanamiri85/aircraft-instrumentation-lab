@@ -76,7 +76,7 @@ export async function checkHeadingInternal(page,scenario) {
   assert.equal(await panel.locator('[data-reading="display"]').textContent(),'Compass card = 270° under lubber line');
   await page.emulateMedia({reducedMotion:'reduce'});
   await page.locator('[data-instrument="turn"]').click();assert.equal(await panel.isVisible(),false);
-  assert.equal(await page.locator('#inside-instrument').count(),0);
+  assert.equal(await page.locator('#inside-instrument').count(),1);
   await page.setViewportSize({width:1440,height:1000});
   console.log(`PASS Phase 3F ${scenario}: actual cardinal alignment, shared card/heading synchronization, north crossings, pitch/bank independence, navigation, components/steps, focus, Reset, responsive layouts and motion preferences`);
 }

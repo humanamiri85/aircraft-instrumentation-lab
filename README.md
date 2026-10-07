@@ -1,4 +1,4 @@
-# Flight Instrument Lab — Phase 3F
+# Flight Instrument Lab — Phase 3G
 
 Interactive six-pack instrument learning page for undergraduate Measurement & Instrumentation. Plain HTML, CSS, JavaScript and dynamic SVG; no runtime dependencies.
 
@@ -472,3 +472,53 @@ cardinal alignment, synchronized readings, wraparound, tabs, keyboard/components
 steps, Teaching Focus, Reset, desktop/tablet/390px/320px layouts, motion preferences
 and WebGL-disabled operation. Screenshots go to `/tmp/phase3f-*.png`; normal startup
 must have no console or network errors.
+
+## Phase 3G — Turn Coordinator Internal Working View
+
+Select **Turn Coordinator**, then **Inside the Instrument**. **Instrument Face**,
+**Internal Cutaway** and **How It Works** reuse the shared internal navigation.
+Seven selectable steps and ten component buttons explain a **restrained rate
+gyro**, conceptual precession, the restoring spring and airplane-symbol output.
+The Phase 3D Gyroscope Fundamentals lesson remains available separately.
+
+A real Turn Coordinator responds to **angular rate**, with roll and yaw sensitivity
+from a canted gyro, rather than measuring bank angle or holding an orientation
+reference. In this teaching model, **Bank is a proxy for turn-rate input**; no new
+slider, yaw-rate state or flight dynamics are added. Bank never integrates Heading,
+and Heading, Pitch, Airspeed, Altitude and V/S do not drive this lesson.
+
+`js/internal/turn/model.js` maps bounded Bank ±45° to a normalized proxy ±1,
+conceptual gimbal deflection ±18° and normalized spring load 0–1. These are visual
+units, not certified internal angles or physical forces. The quasi-static mapping
+shows equilibrium: positive proxy deflects right, negative proxy left, and zero
+restores the centered mechanism and unloaded spring. No damping time constant,
+angular-momentum equations or transient rate response is claimed.
+
+The cutaway distinguishes the dashed aircraft-fixed case, moving rotor / single
+restrained gimbal and zigzag restoring spring. The spring end and output pickoff
+follow the rotating gimbal attachment. Separate input, spin and permitted
+out-of-diagram deflection-axis labels introduce **precession about a different
+axis** conceptually; the drawing is a schematic projection, not a literal bearing
+layout. Shared gyro motion and component styles provide the slow rotor cue and
+reduced-motion static spin indication; the free-gyro world-stabilized transform is
+not used. Detailed torque and angular-momentum dynamics are beyond this phase.
+
+Both internal displays reuse `createTurn` and its existing `turnAngle` mapping, so
+the cockpit and internal airplane symbols agree. The existing **2 MIN** and left /
+right standard-rate reference marks remain. Their alignment at ±30° Bank is only
+a simplified teaching mapping; Bank alone does not determine real standard rate.
+A future turn-rate flight model can replace the proxy without changing the lesson
+navigation or display calibration.
+
+The **ball / inclinometer is a separate subsystem**, drawn in its own curved tube
+with no connection to the gyro linkage. Gravity and lateral acceleration govern
+real displacement: centered means coordinated and displaced means slip/skid.
+This phase has no lateral-acceleration model, so the ball stays centered; no fake
+slip/skid motion is introduced.
+
+`npm test` adds sign, bounds, symmetry, monotonicity, neutral return, shared symbol
+calibration and independence tests at −45/−20/0/+20/+45° Bank. `npm run test:browser`
+retains previous lessons and adds signed gimbal/spring/symbol behavior, neutral
+return, separate fixed ball, all three modes, components/steps, keyboard access,
+Teaching Focus, Reset, desktop/tablet/390px/320px layouts, both motion preferences
+and WebGL-disabled operation. Screenshots go to `/tmp/phase3g-*.png`.

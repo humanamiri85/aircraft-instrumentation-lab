@@ -134,3 +134,9 @@
 /* The heading world projection needs room beside the case-fixed card. */
 @container(max-width:1000px){#heading-internal .mechanism-layout{grid-template-columns:minmax(0,1fr)}#heading-internal .measurement-chain ol{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @container(max-width:500px){#heading-internal .measurement-chain ol{grid-template-columns:minmax(0,1fr)}}
+.turn-diagram .turn-input{fill:none;stroke:#79c9de;stroke-width:2}.turn-diagram .turn-input text{stroke:none;fill:#dce6e7}
+.turn-diagram .turn-neutral{stroke:#84979e;stroke-width:2;stroke-dasharray:4 4}
+.turn-diagram .turn-spring{fill:none;stroke:#94bd9c;stroke-width:3}
+.turn-inclinometer{border:1px solid var(--line);border-radius:6px;padding:12px;margin:16px 0;font-size:13px;line-height:1.6}
+.turn-inclinometer svg{display:block;width:100%;max-width:300px;margin:auto}
+.turn-deflection-axis{fill:#101416;stroke:#f0f1e7;stroke-width:1.5}
