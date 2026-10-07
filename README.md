@@ -35,3 +35,13 @@ Selecting an instrument highlights its face and shows its indicated quantity, di
 Controls independently set airspeed (40–180 kt), altitude (0–10,000 ft), vertical speed (±2,000 ft/min), pitch (±20°), bank (±45°), and heading (0–359°). Vertical speed does not integrate altitude; bank does not integrate heading. Bank drives the turn coordinator’s miniature airplane as a qualitative demo, not a calculated turn rate; the ball stays centered. Airspeed arcs are illustrative, pressure setting is fixed, and no sensor physics or errors are simulated. Reduced-motion preferences are respected.
 
 Educational simulator only. Not flight-certified; not for flight or navigation.
+
+## Phase 2A — Linked 3D Aircraft View
+
+The low-poly aircraft helps connect cockpit indications with attitude in a fixed world reference. Pitch, bank and heading consume the same smoothed state as the six instruments. Gold marks the nose and tail; compass labels and a ground grid make heading observable from the fixed elevated camera. Reset immediately restores the shared default state. Reduced motion immediately applies slider targets.
+
+This is an orientation visualization, **not a flight-dynamics simulator**. Airspeed, altitude and vertical speed do not move the aircraft. No forces, automatic turns, terrain or external model assets are simulated. If WebGL is unavailable, the panel explains the limitation while the cockpit and controls keep working.
+
+World coordinates are +X east, +Y up and −Z north. The aircraft nose points along local −Z and its right wing along local +X. Intrinsic YXZ Euler rotation applies negative heading, positive pitch and negative bank: headings increase clockwise from north, positive pitch raises the nose, and positive bank lowers the right wing. Conversion lives in `js/aircraft/orientation.js`.
+
+Three.js **0.180.0** (MIT) is bundled in `vendor/three/` with its license. Both upstream ES modules are kept together and loaded with relative paths, so GitHub Pages needs no build, CDN, npm installation or import map. To refresh, obtain that pinned npm package with integrity verification and copy `build/three.module.js`, `build/three.core.js` and `LICENSE`; do not edit vendored code. `npm test` includes pure orientation tests using the same Three.js math as the renderer. Development browser tooling is optional and is not an application dependency.
