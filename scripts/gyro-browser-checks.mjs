@@ -4,7 +4,7 @@ export async function checkGyroFoundation(page,scenario) {
   const panel=page.locator('#gyro-internal');
   for(const instrument of ['attitude','heading','turn']) {
     await page.locator(`[data-instrument="${instrument}"]`).click();
-    assert.equal(await page.locator('#inside-instrument').count(),0,'unfinished internals remain placeholders');
+    assert.equal(await page.locator('#inside-instrument').count(),instrument==='attitude'?1:0,'only attitude has an instrument-specific cutaway');
     await page.locator('#gyro-fundamentals').click();
     assert.equal(await panel.isVisible(),true);
     assert.equal(await panel.locator('[role=tab][aria-selected=true]').textContent(),'Gyro Assembly');

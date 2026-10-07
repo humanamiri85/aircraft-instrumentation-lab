@@ -1,4 +1,4 @@
-# Flight Instrument Lab — Phase 1B
+# Flight Instrument Lab — Phase 3E
 
 Interactive six-pack instrument learning page for undergraduate Measurement & Instrumentation. Plain HTML, CSS, JavaScript and dynamic SVG; no runtime dependencies.
 
@@ -361,3 +361,61 @@ ASI/Altimeter/VSI checks and adds the shared gyro lesson: actual rendered stable
 spin axes, moving body frame, three modes, keyboard/component/step navigation,
 Teaching Focus, Reset, desktop/tablet/390px/320px layout and both motion preferences
 with normal WebGL and WebGL disabled. Screenshots go to `/tmp/phase3d-*.png`.
+
+## Phase 3E — Attitude Indicator Internal Working View
+
+Select **Attitude Indicator**, then **Inside the Instrument**. **Instrument Face**,
+**Internal Cutaway** and **How It Works** use the shared ASI/Altimeter/VSI navigation.
+Seven selectable steps and nine keyboard-accessible component buttons explain the
+rotor, spin axis, gimbals, case, horizon, aircraft symbol, bank scale and pitch ladder.
+The separate **Gyroscope Fundamentals** button retains the complete Phase 3D lesson.
+Heading Indicator and Turn Coordinator internals remain later-phase placeholders.
+
+The physical concept is rigidity in space: the aircraft-mounted case moves around
+a stabilized gyro reference, and their relative orientation drives the horizon.
+This lesson uses an **ideal vertical reference**. Phase 3D's north-pointing spin axis
+stabilizes one axis and cannot by itself stabilize roll; it is not relabeled as a
+complete attitude reference. Shared gyro helpers in `js/internal/gyro/` provide the
+slow rotor cue, vertical-reference calculation and labeled SVG assembly. The existing
+aviation YXZ convention is reused; model tests independently check the relative
+vertical axis using Phase 3D's `bodyQuaternion`. No separate controls, animation loop,
+Three.js copy or dependency is introduced. The Phase 3D scene and lesson remain intact.
+
+The cutaway separates a **side pitch projection** (nose points right) and a **front
+bank projection** (aircraft right wing is on diagram right). Positive pitch rotates
+the dashed case nose-up around the fixed gold axis; positive bank lowers the case's
+right wing. The outer ring moves with the case while the inner reference remains
+stabilized. Both projections respond simultaneously for combined attitudes. Rotor
+disks are drawn face-on so their slow spokes remain visible; the gold shaft denotes
+the vertical spin axis. These are schematic projections, not a literal bearing layout.
+
+A labeled conceptual gimbal pickoff / display linkage connects the stabilized
+reference to a combined dial viewed from the moving case. The cutaway display and
+Instrument Face both use the original cockpit `createAttitude` renderer and its
+`attitudeTransform`: pitch offset = pitch × 1.8 drawing units; horizon roll = −bank.
+Nose-up lowers the horizon, nose-down raises it, and right bank rotates it
+counterclockwise beneath the fixed aircraft symbol. Pitch ladder and roll index
+follow the horizon; bank marks and aircraft symbol belong to the case. The live
+attitude chain reports input, stabilized reference, relative motion and indication.
+Changing heading, altitude, airspeed or vertical speed does not change this attitude
+indication or relative vertical reference. Reset restores pitch/bank without clearing
+selection, learning mode or Teaching Focus.
+
+**Gyro stabilization and internal geometry are simplified for teaching; real
+instruments include additional erection, damping, and drive systems.** No vacuum,
+electric drive, erection vanes, drift, topple limits, acceleration errors, precession
+or instrument failure behavior is modeled. SVG supports the whole lesson without
+WebGL. Reduced motion freezes rotor spokes and adds a spin-direction explanation;
+case motion and indication still follow slider changes immediately. Only the diagram
+scrolls on narrow screens. Tabs support Arrow/Home/End keys; components and steps
+use standard keyboard-accessible buttons. Labels distinguish aircraft-fixed parts
+from stabilized parts independently of color.
+
+Implementation: `js/internal/attitude/{model,view,content}.js`. `npm test` checks
+−20/0/+20° pitch, −45/0/+45° bank, +10°/+30° and −10°/−30° combinations, shared
+cockpit calibration, normalized/stable reference, heading independence and shared
+reduced-motion behavior. `npm run test:browser` retains earlier regressions and
+checks ±15° pitch, ±30° bank, combined attitudes, all three views, component/step
+highlighting, keyboard navigation, Teaching Focus, Reset, desktop/tablet/390px/320px
+layouts, normal/reduced motion and WebGL-disabled operation. Screenshots are saved
+to `/tmp/phase3e-*.png`; normal startup must have no console or network errors.
