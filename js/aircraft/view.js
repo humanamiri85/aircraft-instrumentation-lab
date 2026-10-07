@@ -68,12 +68,40 @@ export async function createAircraftView(panel) {
     box([.48, .28, .8], [0, .32, -.7], dark);
     // Fixed world labels, not attached to aircraft or camera.
     const labels = [];
+    const compass = new THREE.Group(); scene.add(compass);
     for (const [text, x, z] of [['N · 000°', 0, -7], ['E · 090°', 7, 0], ['S · 180°', 0, 7], ['W · 270°', -7, 0]]) {
       const canvas = document.createElement('canvas'); canvas.width = 256; canvas.height = 64;
       const ctx = canvas.getContext('2d'); ctx.fillStyle = '#f8f4e5'; ctx.font = 'bold 30px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(text, 128, 43);
       const texture = new THREE.CanvasTexture(canvas);
       const sprite = new THREE.Sprite(new THREE.SpriteMaterial({map: texture, depthTest: false}));
-      sprite.position.set(x, -1.9, z); sprite.scale.set(2.8, .7, 1); scene.add(sprite); labels.push(texture);
+      sprite.position.set(x, -1.9, z); sprite.scale.set(2.8, .7, 1); compass.add(sprite); labels.push(texture);
+    }
+    // Independent cue groups: styling never changes state, geometry or physics.
+    const cueObjects={attitude:[aircraft],heading:[compass,grid],altitude:[altitudeLine,groundRing],airspeed:[flow],verticalSpeed:[climbArrow]};
+    const baseMaterials=new Map();
+    for(const objects of Object.values(cueObjects)) for(const object of objects) object.traverse(child=>{
+      for(const material of child.material ? [child.material].flat() : []) {
+        if(!baseMaterials.has(material)) baseMaterials.set(material,{opacity:material.opacity,transparent:material.transparent,color:material.color?.clone()});
+      }
+    });
+    let focusKey;
+    function emphasize(focus) {
+      const key=focus.cues.join(',');
+      if(key===focusKey) return;
+      focusKey=key;
+      renderer.domElement.dataset.focusedCues=key;
+      for(const [group,objects] of Object.entries(cueObjects)) {
+        const selected=focus.cues.includes(group), dimmed=focus.cues.length>0 && !selected;
+        for(const object of objects) object.traverse(child=>{
+          for(const material of child.material ? [child.material].flat() : []) {
+            const base=baseMaterials.get(material);
+            material.opacity=base.opacity*(dimmed?.65:1);
+            material.transparent=base.transparent||dimmed;
+            if(base.color) material.color.copy(base.color).lerp(new THREE.Color('#fff1c9'),selected?.18:0);
+            material.needsUpdate=true;
+          }
+        });
+      }
     }
     function resize() {
       const {width, height: outerHeight} = viewport.getBoundingClientRect();
@@ -91,7 +119,8 @@ export async function createAircraftView(panel) {
     renderer.domElement.addEventListener('webglcontextlost', event => {event.preventDefault(); fallback();});
     status.hidden = true;
     return {
-      update(state, dt = 0, reducedMotion = false) {
+      update(state, dt = 0, reducedMotion = false, focus = {cues: []}) {
+        emphasize(focus);
         updateLabels(state);
         if (lost) return;
         const height = altitudeHeight(state.altitude);

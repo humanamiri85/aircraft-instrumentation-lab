@@ -107,3 +107,38 @@ CHROMIUM_PATH=/usr/bin/chromium npm run test:browser
 
 Use an installed Chromium executable via `CHROMIUM_PATH` if its location differs.
 The browser runner starts and stops its own static server on an ephemeral port.
+
+## Phase 2C — Educational Synchronization
+
+Select an instrument to link its control rows, HUD values and existing 3D cues.
+The shared mapping in `js/education.js` also supplies the concise **Linked flight
+variables**, 3D representation, pilot meaning and relationship text.
+
+| Instrument | Independent controls / HUD fields | 3D focus |
+| --- | --- | --- |
+| Airspeed Indicator | Airspeed / IAS | Relative-reference motion |
+| Attitude Indicator | Pitch and Bank / PITCH and BANK | Aircraft attitude |
+| Altimeter | Altitude / ALT | Compressed height, reference line and ground ring |
+| Turn Coordinator | Bank / BANK | Aircraft bank / simplified turn tendency |
+| Heading Indicator | Heading / HDG | Fixed compass and world grid |
+| Vertical Speed Indicator | Vertical Speed / V/S | Climb/descent arrow and label |
+
+**Teaching focus** starts on. Selected instruments retain their selection border;
+linked controls and HUD fields use borders and heavier labels. Existing 3D cue
+materials receive a subtle highlight and unrelated cues are slightly dimmed.
+Unrelated instruments and controls remain visible and usable. Switching focus off
+restores the full cockpit and normal cue appearance while keeping selection and
+explanations. Keyboard users can select instruments with Enter/Space and toggle
+focus with Space. Linked sliders and HUD fields reference the relationship text.
+
+Reset restores all six variables and indications without clearing selection or
+Teaching focus. Focus also works with the textual HUD when WebGL is unavailable.
+All flight variables remain independently controlled: pitch does not set vertical
+speed, bank does not change heading, and vertical speed does not change altitude.
+Actual turn rate is not simulated; altitude remains compressed and reference
+motion does not translate the aircraft. No new physical behavior is introduced.
+
+`npm test` includes mapping and focus-state tests. `npm run test:browser` also
+checks all six selections, linked controls/HUD/cues, slider changes, Reset,
+Teaching focus on/off, keyboard input, fallback scenarios and desktop/tablet/mobile
+layout (including a 320px viewport). Browser screenshots are written to `/tmp`.
