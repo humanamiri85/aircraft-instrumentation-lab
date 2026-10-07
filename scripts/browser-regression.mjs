@@ -67,6 +67,53 @@ try {
         if(before3D)assert.equal(before3D.equals(await canvas.screenshot()),false,`${key} changes 3D canvas`);
       }
     }
+    // Phase 2C: real DOM emphasis, Reset persistence and keyboard interaction.
+    const links={airspeed:['airspeed'],attitude:['pitch','bank'],altimeter:['altitude'],turn:['bank'],heading:['heading'],vsi:['verticalSpeed']};
+    const cues={airspeed:'airspeed',attitude:'attitude',altimeter:'altitude',turn:'attitude',heading:'heading',vsi:'verticalSpeed'};
+    for(const [id,keys] of Object.entries(links)) {
+      await page.locator(`[data-instrument="${id}"]`).click();
+      assert.deepEqual(await page.locator('.control.linked').evaluateAll(rows=>rows.map(row=>row.dataset.variable)),keys);
+      assert.deepEqual((await page.locator('#flight-data .linked dd').evaluateAll(fields=>fields.map(field=>field.dataset.flight))).sort(),[...keys].sort());
+      assert.equal(await page.locator(`[data-instrument="${id}"]`).getAttribute('aria-pressed'),'true');
+      assert.ok(await page.locator('#relationship').textContent());
+      if(scenario==='normal') await page.waitForFunction(cue=>document.querySelector('canvas').dataset.focusedCues===cue,cues[id]);
+      // Exercise every linked input with its focus active; existing assertions above
+      // cover the resulting instrument readings, independence and 3D transforms.
+      for(const key of keys) {
+        const [,value,instrumentIds]=changes.find(change=>change[0]===key);
+        await page.locator('#reset').click();
+        const before=await page.locator(`[data-instrument="${instrumentIds[0]}"] svg`).innerHTML();
+        await page.locator(`#${key}`).evaluate((input,value)=>{input.value=value;input.dispatchEvent(new Event('input',{bubbles:true}));},value);
+        assert.notEqual(await page.locator(`[data-instrument="${instrumentIds[0]}"] svg`).innerHTML(),before);
+        if(scenario==='normal') assert.equal(await page.locator(`[data-flight="${key}"]`).textContent(),{airspeed:'160 kt',altitude:'7000 ft',pitch:'+15°',bank:'R 30°',heading:'045°',verticalSpeed:'+1200 fpm'}[key]);
+      }
+      await page.locator('#reset').click();
+      assert.equal(await page.locator(`[data-instrument="${id}"]`).getAttribute('aria-pressed'),'true');
+      assert.equal(await page.locator('#teaching-focus').isChecked(),true);
+      assert.deepEqual(await page.locator('.control.linked').evaluateAll(rows=>rows.map(row=>row.dataset.variable)),keys);
+    }
+    await page.locator('#teaching-focus').uncheck();
+    assert.equal(await page.locator('.control.linked, #flight-data .linked').count(),0);
+    assert.equal(await page.locator('.teaching-focus').count(),0);
+    await page.locator('#reset').click();
+    assert.equal(await page.locator('#teaching-focus').isChecked(),false);
+    await page.locator('[data-instrument="attitude"]').focus();
+    await page.keyboard.press('Enter');
+    assert.equal(await page.locator('[data-instrument="attitude"]').getAttribute('aria-pressed'),'true');
+    await page.locator('#teaching-focus').focus();
+    await page.keyboard.press('Space');
+    assert.deepEqual(await page.locator('.control.linked').evaluateAll(rows=>rows.map(row=>row.dataset.variable)),['pitch','bank']);
+    if(scenario==='normal') {
+      for(const [name,width,height] of [['desktop',1440,1000],['tablet',768,1024],['mobile',390,844],['small-mobile',320,700]]) {
+        await page.setViewportSize({width,height});
+        await page.waitForTimeout(100);
+        assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,`${name}: horizontal overflow`);
+        const bounds=await page.locator('#flight-data').boundingBox();
+        const canvasBounds=await page.locator('canvas').boundingBox();
+        assert.ok(bounds.y+bounds.height<=canvasBounds.y+1,`${name}: HUD overlaps canvas`);
+        await page.screenshot({path:`/tmp/phase2c-${name}.png`,fullPage:true});
+      }
+    }
     const frames=await page.evaluate(()=>window.__frames);
     await page.waitForFunction(previous=>window.__frames>previous,frames,{timeout:5000});
     assert.ok(!errors.some(e=>e.startsWith('uncaught:')),errors.join('\n'));

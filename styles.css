@@ -12,3 +12,19 @@
 .flight-cue-readings{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;margin-top:12px;color:var(--accent);font:12px ui-monospace,monospace}
 @media(max-width:760px){.aircraft-viewport{height:400px}.attitude-overlay{font-size:11px;gap:8px}}
 @media(max-width:520px){.attitude-overlay{grid-template-columns:repeat(2,minmax(0,1fr));padding:10px}.aircraft-viewport{padding-top:104px;height:420px}.aircraft-panel .section-heading{flex-wrap:wrap}}
+
+/* Educational links use borders and weight as well as color. */
+.teaching-toggle{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:16px;font-size:13px;cursor:pointer}
+.teaching-toggle input{accent-color:var(--accent)}
+#focus-summary{color:var(--muted);font-size:12px;flex-basis:100%}
+.teaching-focus .instrument[aria-pressed=false]{opacity:.72}
+.control{padding:6px;border:2px solid transparent;border-radius:5px}
+.control.linked{border-color:var(--accent)}
+.control.linked label,.attitude-overlay .linked dt{font-weight:750}
+.attitude-overlay>div{border-left:3px solid transparent;padding-left:5px}
+.attitude-overlay .linked{border-left-color:var(--accent)}
+.teaching-focus .attitude-overlay>div:not(.linked){opacity:.8}
+.flight-cue-readings .linked{border-bottom:2px solid currentColor;font-weight:750}
+.info h3{font-size:14px;margin:16px 0 10px}
+.info .linked-explanation{grid-template-columns:1fr}
+#relationship{font-size:13px;border-left:3px solid var(--accent);padding-left:10px}
