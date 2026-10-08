@@ -19,8 +19,10 @@ export async function checkConsolidation(page,scenario) {
         await page.locator(`[data-instrument="${instrument}"]`).focus();await page.keyboard.press('Enter');
         await page.locator('#inside-instrument').focus();await page.keyboard.press('Enter');
         const panel=page.locator(`#${prefix}-internal`);
+        const hasChain=['airspeed','altimeter','vsi'].includes(instrument);
+        const lastMode=hasChain?'chain':'works';
         assert.equal(await panel.getAttribute('data-view'),'cutaway');
-        assert.deepEqual(await panel.locator('[role=tab]').allTextContents(),['Instrument Face','Internal Cutaway','How It Works']);
+        assert.deepEqual(await panel.locator('[role=tab]').allTextContents(),['Instrument Face','Internal Cutaway','How It Works',...(hasChain?['Measurement Chain']:[])]);
         assert.equal(await panel.locator('[role=tabpanel]:visible').count(),1);
         assert.equal(await page.locator('.internal-panel:not(#gyro-internal):visible').count(),1);
         const before=await panel.locator('[data-reading="face"]').textContent();
@@ -32,14 +34,14 @@ export async function checkConsolidation(page,scenario) {
         assert.notEqual(await panel.locator('[data-reading="face"]').textContent(),before);
         await panel.locator('[role=tab][aria-selected=true]').focus();await page.keyboard.press('ArrowRight');
         assert.equal(await panel.getAttribute('data-view'),'works');
-        const step=panel.locator('[data-step]').nth(1);
+        const step=panel.locator(`#${prefix}-panel-works [data-step]`).nth(1);
         await step.focus();await page.keyboard.press('Space');
         assert.equal(await step.getAttribute('aria-pressed'),'true');
         const component=await step.getAttribute('data-step-component');
-        assert.equal(await panel.locator(`[data-select-component="${component}"]`).getAttribute('aria-pressed'),'true');
-        const explanation=await panel.locator('.component-explanation').textContent();assert.ok(explanation.length>20);
-        await panel.locator('[data-select-component]').first().focus();await page.keyboard.press('Enter');
-        assert.equal(await panel.locator('[data-step][aria-pressed=true]').count(),0);
+        assert.equal(await panel.locator(`.internal-mechanism [data-select-component="${component}"]`).getAttribute('aria-pressed'),'true');
+        const explanation=await panel.locator('.internal-mechanism .component-explanation').textContent();assert.ok(explanation.length>20);
+        await panel.locator('.internal-mechanism [data-select-component]').first().focus();await page.keyboard.press('Enter');
+        assert.equal(await panel.locator(`#${prefix}-panel-works [data-step][aria-pressed=true]`).count(),0);
         await step.focus();await page.keyboard.press('Enter');
         await page.locator('#teaching-focus').check();assert.equal(await panel.evaluate(el=>el.classList.contains('focus-linked')),true);
         await page.locator('#teaching-focus').uncheck();assert.equal(await panel.evaluate(el=>el.classList.contains('focus-linked')),false);
@@ -52,7 +54,7 @@ export async function checkConsolidation(page,scenario) {
         await panel.locator('[role=tab][aria-selected=true]').focus();await page.keyboard.press('Home');
         assert.equal(await panel.getAttribute('data-view'),'face');
         assert.equal(await panel.locator('[role=tab][tabindex="0"]').count(),1);
-        await page.keyboard.press('End');assert.equal(await panel.getAttribute('data-view'),'works');
+        await page.keyboard.press('End');assert.equal(await panel.getAttribute('data-view'),lastMode);
         await page.keyboard.press('ArrowRight');assert.equal(await panel.getAttribute('data-view'),'face');
         // Inspect every mode at every width, with readable, scrollable mechanism geometry.
         for(const mode of ['cutaway','works','face']) {
@@ -62,9 +64,9 @@ export async function checkConsolidation(page,scenario) {
           assert.equal(await body.getAttribute('tabindex'),'0');
           assert.equal(await body.getAttribute('aria-labelledby'),`${prefix}-tab-${mode}`);
           if(mode!=='face') {
-            assert.equal(await panel.locator('.component-explanation').isVisible(),true);
-            assert.equal(await panel.locator('.measurement-chain').isVisible(),true);
-            const scroll=panel.locator('.diagram-scroll');
+            assert.equal(await panel.locator('.internal-mechanism .component-explanation').isVisible(),true);
+            assert.equal(await panel.locator('.internal-mechanism .measurement-chain').isVisible(),true);
+            const scroll=panel.locator('.internal-mechanism .diagram-scroll');
             assert.equal(await scroll.evaluate(el=>getComputedStyle(el).overflowX),'auto');
           }
         }

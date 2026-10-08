@@ -73,6 +73,8 @@ export async function checkAltimeterInternal(page,scenario) {
   await page.keyboard.press('ArrowRight');
   assert.equal(await page.locator('#altimeter-tab-cutaway').getAttribute('aria-selected'),'true');
   await page.keyboard.press('End');
+  assert.equal(await page.locator('#altimeter-tab-chain').getAttribute('aria-selected'),'true');
+  await page.keyboard.press('ArrowLeft');
   assert.equal(await page.locator('#altimeter-tab-works').getAttribute('aria-selected'),'true');
   await page.keyboard.press('ArrowLeft');
   assert.equal(await page.locator('#altimeter-tab-cutaway').getAttribute('aria-selected'),'true');

@@ -1,4 +1,4 @@
-# Flight Instrument Lab — Phase 3H
+# Flight Instrument Lab — Phase 4A
 
 Interactive six-pack instrument learning page for undergraduate Measurement & Instrumentation. Plain HTML, CSS, JavaScript and dynamic SVG; no runtime dependencies.
 
@@ -562,3 +562,52 @@ Phase 4 will extend internal mechanisms toward complete measurement chains and
 sensing/transmission systems. Current geometry and displacement remain teaching
 visualizations, with no manufacturer geometry, certified mechanical travel,
 failures, drift, noise, calibration effects or flight dynamics implied.
+
+## Phase 4A — Pitot-Static Measurement Chain Foundation
+
+Select Airspeed Indicator, Altimeter or Vertical Speed Indicator, open **Inside
+the Instrument**, then select the fourth tab, **Measurement Chain**. The existing
+Instrument Face, Internal Cutaway and How It Works lessons remain available;
+gyroscopic instruments retain their three modes.
+
+The reusable SVG system shows atmosphere / free stream → pitot tube and static
+port → separate pressure transmission lines → instrument inputs → sensing and
+mechanical conversion → cockpit indication. Teaching Focus emphasizes the selected
+instrument's paths while retaining the other branches. Six guided steps and ten
+keyboard-accessible component explanations connect the external sources to the
+existing internal cutaways. Solid total-pressure and dashed static-pressure lines,
+text labels and directional cues keep routing understandable without color or
+animation. Narrow screens use a vertical topology with readable labels.
+
+The ASI receives **Pt inside its diaphragm and Ps around it in the case**. The
+Altimeter receives **Ps only**, surrounding a sealed aneroid stack; altitude is
+inferred from static pressure, not directly sensed. The VSI receives **Ps only**;
+its calibrated leak and delayed case pressure remain internal. Neither the
+Altimeter nor VSI has a pitot connection.
+
+`js/measurement/pitot-static/{model,view,content}.js` reuses the Phase 3 ASI's knot
+conversion / fixed representative density / dynamic pressure, the Altimeter's
+standard-atmosphere static pressure, and the VSI's existing shared lag state.
+No scientific model was forked or changed. **Pt = Ps + q**, **q = ½ρV²** with fixed
+ρ = 1.225 kg/m³, and altitude-dependent Ps are reference pressure values, not
+certified aircraft air data. Airspeed changes q and Pt; altitude changes Ps and Pt
+without changing q. Vertical speed controls the independent normalized pressure
+trend / lag lesson; it never integrates altitude or changes absolute Ps. The live
+system panel distinguishes vertical-speed input from the lagged cockpit indication.
+
+Pressure paths, geometry and port locations are conceptual teaching mappings.
+Pulses represent **pressure signal transmission**, not continuous bulk airflow
+through plumbing. Reduced motion removes pulses and reuses the existing settled
+lag behavior. Local fuselage pressure coefficients, compressibility, position
+error, blockages, leaks, icing, alternate static sources, noise, calibration error,
+uncertainty, failures, pressure transducers and air-data computers await later phases.
+
+The fourth tab loads independently on first use. Missing dependencies or renderer
+errors produce a status message in that tab while the cockpit, controls and Phase 3
+lessons remain usable. `npm test` verifies pressure identities over 40/110/180 kt,
+0/5000/10000 ft and −1000/0/+1000 ft/min, routing, trend signs, lag reuse and
+independence. `npm run test:browser` retains all prior scenarios and adds sequential
+visits across the three measurement chains, four-mode keyboard navigation, live
+values, Teaching Focus, Reset, all five widths (1440/1024/768/390/320), both motion
+preferences, WebGL fallback and independent measurement load/init/update failures.
+Screenshots are written to `/tmp/phase4a-*.png`.

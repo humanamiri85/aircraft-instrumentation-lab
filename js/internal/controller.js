@@ -33,11 +33,12 @@ export function createInternalLessons() {
   }
   function updateOne(id,dt=0) {
     if(!state)return;
-    run(id,view=>id==='gyro'?view.update(state,dt,reduced):view.update(state,lag,reduced,dt));
+    run(id,view=>{if(id==='gyro')view.update(state,dt,reduced);else view.update(state,lag,reduced,dt);view.updateExtension?.(state,lag,reduced);});
   }
   function applyFocus() {
     entries.forEach((entry,id)=>entry.panel.classList.toggle('focus-linked',focused&&(id===selected || id==='gyro'&&gyroInstruments.includes(selected))));
     run('gyro',view=>view.setFocus(focused&&gyroInstruments.includes(selected)));
+    entries.forEach((entry,id)=>run(id,view=>view.setExtensionFocus?.(focused)));
   }
   function synchronize(id) {
     const entry=entries.get(id);
@@ -53,7 +54,9 @@ export function createInternalLessons() {
       entries.forEach((entry,id)=>{
         entry.load().then(module=>{
           if(closed)return;
-          entry.view=module[entry.factory](entry.panel);synchronize(id);
+          entry.view=module[entry.factory](entry.panel);
+          if(['airspeed','altimeter','vsi'].includes(id))entry.view.addLearningMode?.('chain','Measurement Chain',()=>import('../measurement/pitot-static/view.js').then(module=>body=>module.createPitotStaticView(body,id)));
+          synchronize(id);
         }).catch(error=>{if(!closed)fail(id,error);});
       });
     },

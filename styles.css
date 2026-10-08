@@ -146,3 +146,11 @@
 .internal-tabs button[aria-selected=true],.component-legend button[aria-pressed=true]{font-weight:700}
 .internal-panel [role=tabpanel]:focus-visible,.diagram-scroll:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
 .measurement-chain,.component-explanation{overflow-wrap:anywhere}
+.ps-system{min-width:0}.ps-system h4{margin:22px 0 10px}.ps-topology{max-width:920px;margin:0 auto}.ps-diagram{display:block;width:100%;height:auto}.ps-vertical{display:none}
+.ps-diagram text{fill:#eef1f0;font-size:17px;text-anchor:start}.ps-diagram rect{fill:#18272e;stroke:#a8bec7;stroke-width:2}.ps-fuselage{fill:#79c9de0d;stroke:#84979e;stroke-width:2;stroke-dasharray:8 5}.ps-probe{fill:none;stroke:#e8bb74;stroke-width:6}.ps-port{fill:#79c9de;stroke:#fff;stroke-width:2}
+.ps-route{fill:none;stroke-width:4;stroke-linecap:round}.ps-total{stroke:#e8bb74}.ps-static{stroke:#79c9de;stroke-dasharray:8 5}.ps-dimmed{opacity:.65}.ps-selected .ps-route{stroke-width:6}.ps-selected rect{stroke-width:4}.ps-focus-note{border-left:3px solid var(--accent);padding-left:12px}
+.ps-system[data-reduced-motion=false] .ps-selected .ps-route{animation:pressure-signal 2.5s ease-in-out infinite}@keyframes pressure-signal{50%{opacity:.55}}
+.ps-live dl{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.ps-live dl div{padding:12px;background:#141b1f;border:1px solid #526167;border-radius:6px}.ps-live dt{font-size:13px;color:var(--muted)}.ps-live dd{margin:6px 0 0;font-weight:700}
+.ps-chain ol{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding-left:22px}.ps-chain li strong,.ps-chain li span{display:block}.ps-chain li span{margin-top:5px}.ps-internal-link button{font:inherit;color:#eef1f0;background:#141b1f;border:1px solid var(--accent);border-radius:5px;padding:8px;cursor:pointer}
+@media(max-width:600px){.ps-horizontal{display:none}.ps-vertical{display:block;max-width:400px;margin:auto}.ps-live dl,.ps-chain ol{grid-template-columns:minmax(0,1fr)}.ps-system{overflow-wrap:anywhere}}
+@media(prefers-reduced-motion:reduce){.ps-system .ps-route{animation:none!important}}
