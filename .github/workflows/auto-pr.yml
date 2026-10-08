@@ -1,0 +1,99 @@
+name: Autonomous PR
+
+on:
+  push:
+    branches: ['phase-*', 'feature-*', 'chore-*']
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: read
+
+concurrency:
+  group: auto-pr-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  automate:
+    name: Create PR and request auto-merge
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      FEATURE_BRANCH: ${{ github.ref_name }}
+      EXPECTED_SHA: ${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Create or update PR to main
+        id: pr
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$FEATURE_BRANCH" != main
+          python3 - <<'PY'
+          import os, pathlib, subprocess
+          title = subprocess.check_output(['git', 'log', '-1', '--format=%s'], text=True).strip()
+          commits = subprocess.check_output(['git', 'log', '--format=- %s%n%b', 'origin/main..HEAD'], text=True).strip()
+          root = pathlib.Path(os.environ['RUNNER_TEMP'])
+          (root / 'pr-title.txt').write_text(title or os.environ['FEATURE_BRANCH'])
+          (root / 'pr-body.txt').write_text(
+              '## Objective\n\nComplete `' + os.environ['FEATURE_BRANCH'] + '`.\n\n'
+              '## Implementation\n\n' + commits + '\n\n'
+              '## Tests\n\nAircraft Lab Validation is pending for `' + os.environ['EXPECTED_SHA'] + '`. '
+              'Auto-merge will only be requested after this exact commit passes.\n\n'
+              '## Scientific / educational assumptions\n\nCommit notes above record task-specific assumptions. '
+              'Preserve the distinction between physical models, educational models and visual mappings; '
+              'conceptual geometry is not certified hardware.\n\n'
+              '## Browser regression\n\nThe complete existing suite is required, including responsive layouts, '
+              'accessibility interactions, Teaching Focus, reduced motion and failure isolation.\n\n'
+              '## Known limitations\n\nTask-specific limitations belong in the commit notes above. '
+              'Automation cannot establish scientific correctness beyond existing assertions; '
+              'repository merge requirements still apply.\n')
+          PY
+          number=$(gh pr list --state open --base main --head "$FEATURE_BRANCH" --json number --jq '.[0].number // empty')
+          if [ -z "$number" ]; then
+            gh pr create --base main --head "$FEATURE_BRANCH" --title "$(cat "$RUNNER_TEMP/pr-title.txt")" --body-file "$RUNNER_TEMP/pr-body.txt"
+            number=$(gh pr list --state open --base main --head "$FEATURE_BRANCH" --json number --jq '.[0].number // empty')
+          else
+            gh pr edit "$number" --title "$(cat "$RUNNER_TEMP/pr-title.txt")" --body-file "$RUNNER_TEMP/pr-body.txt"
+          fi
+          test -n "$number"
+          echo "number=$number" >> "$GITHUB_OUTPUT"
+      - name: Wait for exact-commit validation
+        shell: bash
+        run: |
+          set -euo pipefail
+          run_id=''
+          for attempt in {1..30}; do
+            run_id=$(gh run list --workflow validate.yml --branch "$FEATURE_BRANCH" --commit "$EXPECTED_SHA" --event push --limit 20 --json databaseId --jq '.[0].databaseId // empty')
+            if [ -n "$run_id" ]; then break; fi
+            sleep 10
+          done
+          if [ -z "$run_id" ]; then
+            echo 'No push-validation run found; refusing to request merge.' >&2
+            exit 1
+          fi
+          gh run watch "$run_id" --exit-status --interval 10
+          conclusion=$(gh run view "$run_id" --json conclusion --jq .conclusion)
+          test "$conclusion" = success
+      - name: Record passing validation and enable squash auto-merge
+        env:
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          head_sha=$(gh pr view "$PR_NUMBER" --json headRefOid --jq .headRefOid)
+          test "$head_sha" = "$EXPECTED_SHA"
+          python3 - <<'PY'
+          import os, pathlib
+          body = pathlib.Path(os.environ['RUNNER_TEMP']) / 'pr-body.txt'
+          body.write_text(body.read_text().replace(
+              'Aircraft Lab Validation is pending for `' + os.environ['EXPECTED_SHA'] + '`. Auto-merge will only be requested after this exact commit passes.',
+              'Aircraft Lab Validation passed for `' + os.environ['EXPECTED_SHA'] + '`: syntax checks, full unit suite and complete browser regression.'))
+          PY
+          gh pr edit "$PR_NUMBER" --body-file "$RUNNER_TEMP/pr-body.txt"
+          gh pr merge "$PR_NUMBER" --auto --squash --match-head-commit "$EXPECTED_SHA"

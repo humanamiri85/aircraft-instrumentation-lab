@@ -8,6 +8,8 @@ Run `npm start` (requires Python 3), then open http://localhost:8000. ES modules
 
 Run `npm run check` for application syntax checks and `npm test` for instrument directions, pointer ratios, control limits and heading wraparound. Tests use Node's built-in runner; no package installation is needed.
 
+Development follows the [autonomous feature-branch workflow](docs/autonomous-development.md): Codex validates and pushes a feature branch; GitHub Actions creates its PR, runs CI and requests squash auto-merge subject to repository requirements.
+
 ## Structure
 
 - `index.html`, `styles.css`: responsive cockpit and learning-panel layout.
