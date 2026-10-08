@@ -55,6 +55,7 @@ export function createInternalLessons() {
         entry.load().then(module=>{
           if(closed)return;
           entry.view=module[entry.factory](entry.panel);
+          if(gyroInstruments.includes(id))entry.view.addLearningMode?.('chain','Measurement Chain',()=>import('../measurement/gyro/view.js').then(module=>body=>module.createGyroChainView(body,id)));
           if(['airspeed','altimeter','vsi'].includes(id))entry.view.addLearningMode?.('chain','Measurement Chain',()=>import('../measurement/pitot-static/view.js').then(module=>body=>module.createPitotStaticView(body,id)));
           synchronize(id);
         }).catch(error=>{if(!closed)fail(id,error);});

@@ -111,7 +111,7 @@ export async function checkPitotStatic(page,scenario) {
     assert.equal(Number(await system.getAttribute('data-vsi-indicated')),1000);
   }
   await page.locator('#reset').click();
-  for(const prefix of ['attitude','heading','turn'])assert.equal(await page.locator(`#${prefix}-tab-chain`).count(),0);
+  for(const prefix of ['attitude','heading','turn'])assert.equal(await page.locator(`#${prefix}-tab-chain`).count(),1);
   console.log(`PASS Phase 4A ${scenario}: shared routing, independent values/lag, four modes, cross-instrument focus, keyboard, Reset, five widths and both motion modes`);
 }
 

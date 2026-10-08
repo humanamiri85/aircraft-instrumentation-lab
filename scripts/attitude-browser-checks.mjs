@@ -38,14 +38,15 @@ export async function checkAttitudeInternal(page,scenario) {
   }
   await panel.locator('#attitude-tab-face').focus();await page.keyboard.press('ArrowRight');
   assert.equal(await panel.locator('#attitude-tab-cutaway').getAttribute('aria-selected'),'true');
-  await page.keyboard.press('End');assert.equal(await panel.locator('#attitude-tab-works').getAttribute('aria-selected'),'true');
+  await page.keyboard.press('End');assert.equal(await panel.locator('#attitude-tab-chain').getAttribute('aria-selected'),'true');
+  await page.keyboard.press('ArrowLeft');assert.equal(await panel.locator('#attitude-tab-works').getAttribute('aria-selected'),'true');
   for(const id of ['rotor','spin','inner','outer','case','horizon','aircraft','bankScale','ladder']) {
     const button=panel.locator(`[data-select-component="${id}"]`);await button.focus();await page.keyboard.press('Enter');
     assert.equal(await button.getAttribute('aria-pressed'),'true');
     assert.ok(await panel.locator(`[data-component="${id}"].component-active`).count()>0);
-    assert.ok(await panel.locator('.component-explanation').textContent());
+    assert.ok(await panel.locator('.internal-mechanism .component-explanation').textContent());
   }
-  for(let i=0;i<7;i++){await panel.locator(`[data-step="${i}"]`).click();assert.equal(await panel.locator(`[data-step="${i}"]`).getAttribute('aria-pressed'),'true');}
+  for(let i=0;i<7;i++){await panel.locator(`#attitude-panel-works [data-step="${i}"]`).click();assert.equal(await panel.locator(`#attitude-panel-works [data-step="${i}"]`).getAttribute('aria-pressed'),'true');}
   await page.locator('#teaching-focus').uncheck();assert.equal(await panel.evaluate(p=>p.classList.contains('focus-linked')),false);
   await page.locator('#teaching-focus').check();assert.equal(await panel.evaluate(p=>p.classList.contains('focus-linked')),true);
   assert.deepEqual(await page.locator('.control.linked').evaluateAll(rows=>rows.map(r=>r.dataset.variable)),['pitch','bank']);

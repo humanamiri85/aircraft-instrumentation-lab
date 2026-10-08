@@ -48,7 +48,8 @@ export async function checkTurnInternal(page,scenario) {
   }
   await panel.locator('#turn-tab-face').focus();await page.keyboard.press('ArrowRight');
   assert.equal(await panel.locator('#turn-tab-cutaway').getAttribute('aria-selected'),'true');
-  await page.keyboard.press('End');assert.equal(await panel.locator('#turn-tab-works').getAttribute('aria-selected'),'true');
+  await page.keyboard.press('End');assert.equal(await panel.locator('#turn-tab-chain').getAttribute('aria-selected'),'true');
+  await page.keyboard.press('ArrowLeft');assert.equal(await panel.locator('#turn-tab-works').getAttribute('aria-selected'),'true');
   await page.keyboard.press('Home');assert.equal(await panel.locator('#turn-tab-face').getAttribute('aria-selected'),'true');
   await panel.locator('#turn-tab-works').click();
   for(const id of ['rotor','spin','gimbal','spring','case','linkage','shaft','marks','tube','ball']) {
@@ -56,7 +57,7 @@ export async function checkTurnInternal(page,scenario) {
     assert.equal(await button.getAttribute('aria-pressed'),'true');
     assert.ok(await panel.locator(`[data-component="${id}"].component-active`).count()>0);
   }
-  for(let i=0;i<7;i++) {await panel.locator(`[data-step="${i}"]`).click();assert.equal(await panel.locator(`[data-step="${i}"]`).getAttribute('aria-pressed'),'true');}
+  for(let i=0;i<7;i++) {await panel.locator(`#turn-panel-works [data-step="${i}"]`).click();assert.equal(await panel.locator(`#turn-panel-works [data-step="${i}"]`).getAttribute('aria-pressed'),'true');}
   await panel.locator('[data-select-component="marks"]').click();
   assert.equal(await panel.locator('.cutaway-face [data-part="references"]').evaluate(node=>node.classList.contains('component-active')),true);
   await page.locator('#teaching-focus').uncheck();assert.equal(await panel.evaluate(p=>p.classList.contains('focus-linked')),false);

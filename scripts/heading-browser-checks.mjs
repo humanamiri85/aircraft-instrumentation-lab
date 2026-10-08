@@ -51,7 +51,8 @@ export async function checkHeadingInternal(page,scenario) {
   }
   await panel.locator('#heading-tab-face').focus();await page.keyboard.press('ArrowRight');
   assert.equal(await panel.locator('#heading-tab-cutaway').getAttribute('aria-selected'),'true');
-  await page.keyboard.press('End');assert.equal(await panel.locator('#heading-tab-works').getAttribute('aria-selected'),'true');
+  await page.keyboard.press('End');assert.equal(await panel.locator('#heading-tab-chain').getAttribute('aria-selected'),'true');
+  await page.keyboard.press('ArrowLeft');assert.equal(await panel.locator('#heading-tab-works').getAttribute('aria-selected'),'true');
   await page.keyboard.press('Home');assert.equal(await panel.locator('#heading-tab-face').getAttribute('aria-selected'),'true');
   await panel.locator('#heading-tab-works').click();
   for(const id of ['rotor','spin','inner','outer','case','reference','drive','card','lubber']) {
@@ -60,8 +61,8 @@ export async function checkHeadingInternal(page,scenario) {
     assert.ok(await panel.locator(`[data-component="${id}"].component-active`).count()>0);
   }
   for(let i=0;i<6;i++) {
-    await panel.locator(`[data-step="${i}"]`).click();
-    assert.equal(await panel.locator(`[data-step="${i}"]`).getAttribute('aria-pressed'),'true');
+    await panel.locator(`#heading-panel-works [data-step="${i}"]`).click();
+    assert.equal(await panel.locator(`#heading-panel-works [data-step="${i}"]`).getAttribute('aria-pressed'),'true');
   }
   await page.locator('#teaching-focus').uncheck();assert.equal(await panel.evaluate(p=>p.classList.contains('focus-linked')),false);
   await page.locator('#teaching-focus').check();assert.equal(await panel.evaluate(p=>p.classList.contains('focus-linked')),true);

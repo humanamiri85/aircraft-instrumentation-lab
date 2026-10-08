@@ -19,10 +19,9 @@ export async function checkConsolidation(page,scenario) {
         await page.locator(`[data-instrument="${instrument}"]`).focus();await page.keyboard.press('Enter');
         await page.locator('#inside-instrument').focus();await page.keyboard.press('Enter');
         const panel=page.locator(`#${prefix}-internal`);
-        const hasChain=['airspeed','altimeter','vsi'].includes(instrument);
-        const lastMode=hasChain?'chain':'works';
+        const lastMode='chain';
         assert.equal(await panel.getAttribute('data-view'),'cutaway');
-        assert.deepEqual(await panel.locator('[role=tab]').allTextContents(),['Instrument Face','Internal Cutaway','How It Works',...(hasChain?['Measurement Chain']:[])]);
+        assert.deepEqual(await panel.locator('[role=tab]').allTextContents(),['Instrument Face','Internal Cutaway','How It Works','Measurement Chain']);
         assert.equal(await panel.locator('[role=tabpanel]:visible').count(),1);
         assert.equal(await page.locator('.internal-panel:not(#gyro-internal):visible').count(),1);
         const before=await panel.locator('[data-reading="face"]').textContent();
