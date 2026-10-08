@@ -6,8 +6,8 @@ const group=(id,body)=>`<g data-component="${id}">${body}</g>`;
 const label=(x,y,text)=>`<text x="${x}" y="${y}">${text}</text>`;
 const path=(id,d,kind)=>group(id,`<path class="ps-route ${kind}" d="${d}"/>`);
 const destination=(id,x,y,width)=>group(`${id}-connection`,`<rect x="${x}" y="${y}" width="${width}" height="78" rx="10"/>${label(x+12,y+25,{airspeed:'ASI · Pt + Ps',altimeter:'Altimeter · Ps only',vsi:'VSI · Ps only'}[id])}${label(x+12,y+51,{airspeed:'Differential diaphragm',altimeter:'Sealed aneroid stack',vsi:'Internal calibrated leak'}[id])}${label(x+12,y+70,'Sensing → indication')}`);
-function diagram(instrument,mobile=false) {
-  const title=`ps-${instrument}-${mobile?'vertical':'horizontal'}`;
+export function diagram(instrument,mobile=false,namespace='ps') {
+  const title=`${namespace}-${instrument}-${mobile?'vertical':'horizontal'}`;
   const sources=mobile?
     `${group('free-stream',label(18,28,'Atmosphere / free stream →'))}<path class="ps-fuselage" d="M18 55Q160 35 318 55V155H18Z"/>
     ${group('pitot-tube',`<path class="ps-probe" d="M22 80H75V115"/>${label(25,72,'Pitot tube')}`)}${group('total-pressure',label(45,142,'Pt'))}

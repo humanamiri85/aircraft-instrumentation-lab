@@ -719,3 +719,45 @@ AHRS, Air Data Computer or formal quizzes are introduced. Recommended Phase 5
 entry point: reuse metadata `chain` element IDs and existing `pressureInputs`
 routes to identify affected elements and shared paths, then add a separately
 validated fault model rather than embedding fault behavior in comparison HTML.
+
+### Phase 5A — Pitot-static faults and propagation
+
+The **Pitot-Static Faults** system lesson adds a separate pressure-transformation
+layer in `js/faults/pitot-static/`, without changing the healthy ASI, atmosphere,
+altimeter or VSI models. Physical flight controls and healthy Ps/Pt remain distinct
+from the effective signals delivered to the cockpit instruments. The other chain
+lessons continue to explain the healthy physical reference; the VSI shares the
+single existing lag state with the cockpit.
+
+- **Blocked Pitot — trapped total pressure** captures Pt at activation. ASI uses
+  trapped Pt against live Ps, so later airspeed changes no longer alter its Pt
+  input, but altitude can alter its indication. Altimeter and VSI remain healthy.
+- **Blocked Static — trapped static pressure** captures Ps for all three pressure
+  instruments. Altimeter stays near activation altitude; the existing VSI lag
+  settles toward zero; ASI still uses live Pt against trapped Ps and is not
+  necessarily frozen.
+- **Pitot Leak — to static / ambient pressure** uses the educational relationship
+  `Pt_effective = Ps + (1 − severity) × (Pt − Ps)`. Severity 0–100% progressively
+  reduces ASI differential pressure, with no effect on Altimeter or VSI.
+
+Activate Fault records a session event, airspeed, altitude, Ps and Pt. Changing the
+selection clears the previous activation; Activate recaptures the current state.
+Clear restores live routing, and application Reset additionally resets severity,
+selection, event and snapshots. The existing fixed-density pressure calibration
+is inverted for the ASI cockpit dial; negative differential pressure has no
+positive airspeed inference and is explicitly flagged, with the pointer at zero.
+Values above the 200 kt dial are flagged and clipped visually. Trapped static
+pressure is inverted using the existing atmosphere function, not a new atmosphere.
+
+The shared Phase 4A SVG shows faulted paths and instrument branches with dashed
+outlines and explicit FAULT/TRAPPED/DEGRADED labels. Healthy/effective live values,
+status cards, guided steps, a symptom matrix, live experiments and ungraded
+revealable diagnostic prompts teach that an upstream source fault can affect
+otherwise healthy instruments. Teaching Focus retains unaffected context.
+
+Fault metadata identifies stable source/path components and affected instruments,
+ready for Phase 5B gyro fault definitions and Phase 5C diagnostic scenarios.
+No new healthy physics, flight dynamics, mechanical failures, icing or generic
+leak model is introduced. Static-to-cabin leakage remains deferred until a
+validated cabin-pressure model exists. The fault lesson loads independently;
+import, initialization or update failure falls back to healthy cockpit operation.

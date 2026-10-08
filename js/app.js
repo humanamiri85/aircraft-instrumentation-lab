@@ -5,6 +5,11 @@ import {instruments} from './catalog.js';
 import {instrumentLinks,initialFocus,selectFocus,toggleFocus,linkedFocus} from './education.js';
 let focus=initialFocus();
 let vsiLag=initialLag();
+let faultView;
+function faultFailure(error){console.error('Optional pitot-static faults failed:',error);faultView=undefined;const panel=document.querySelector('#faults-internal');panel.innerHTML='<h2 id="faults-title">Pitot-Static Faults</h2><p role="status">Fault lesson unavailable. Healthy cockpit and other lessons remain usable.</p>';}
+function resetFault(){try{faultView?.reset?.();}catch(error){faultFailure(error);}}
+function faultInputs(){try{return faultView?.transform(current).state || current;}catch(error){faultFailure(error);return current;}}
+function updateFault(){try{faultView?.setFocus(focus.enabled,focus.instrument);faultView?.update(current,vsiLag,motion.matches);}catch(error){faultFailure(error);}}
 const motion=matchMedia('(prefers-reduced-motion: reduce)');
 const target=initialState(),current=initialState();
 const grid=document.querySelector('#instruments'),controls=document.querySelector('#controls');
@@ -13,9 +18,11 @@ const lessons=createInternalLessons();
 const internalView={update(state,dt=0){lessons.update(state,vsiLag,motion.matches,dt);},select(id){lessons.select(id);},open(){lessons.open(focus.instrument);}};
 
 function renderCockpit(dt=0) {
-  vsiLag=advanceLag(vsiLag,current.verticalSpeed,dt,motion.matches);
-  const indicated={...current,verticalSpeed:vsiMechanism(vsiLag,current.verticalSpeed).indicated};
-  renderers.forEach(r=>{const state=r.id==='vsi'?indicated:current;r.update(state);r.value.textContent=r.read(state)});
+  const effective=faultInputs();
+  vsiLag=advanceLag(vsiLag,effective.verticalSpeed,dt,motion.matches);
+  const indicated={...effective,verticalSpeed:vsiMechanism(vsiLag,effective.verticalSpeed).indicated};
+  renderers.forEach(r=>{const state=r.id==='vsi'?indicated:effective;r.update(state);r.value.textContent=r.read(state)});
+  updateFault();
 }
 
 let aircraftView;
@@ -46,6 +53,7 @@ window.addEventListener('pagehide', event => {
 const format=(v,value)=>`${Math.round(value).toLocaleString('en-US')}${v.unit==='°'?'':' '}${v.unit}`;
 variables.forEach(v=>{const row=document.createElement('div');row.className='control';row.dataset.variable=v.key;row.innerHTML=`<div class="control-line"><label for="${v.key}">${v.label}</label><output for="${v.key}" id="${v.key}-value"></output></div><input id="${v.key}" type="range" min="${v.min}" max="${v.max}" step="${v.step}" value="${v.initial}"><div class="limits"><span>${format(v,v.min)}</span><span>${format(v,v.max)}</span></div>`;controls.append(row);row.querySelector('output').textContent=format(v,v.initial);row.querySelector('input').addEventListener('input',event=>{setVariable(target,v.key,Number(event.target.value));row.querySelector('output').textContent=format(v,target[v.key]);current[v.key]=target[v.key];renderCockpit();internalView.update(current);updateAircraft()})});
 function applyFocus() {
+  updateFault();
   lessons.setFocus(focus.enabled);
   const linked=linkedFocus(focus);
   document.querySelector('.workspace').classList.toggle('teaching-focus',focus.enabled);
@@ -97,7 +105,7 @@ function select(instrument) {
 document.querySelector('#teaching-focus').addEventListener('change',event=>{
   focus=toggleFocus(focus,event.target.checked);applyFocus();
 });
-document.querySelector('#reset').addEventListener('click',()=>{Object.assign(target,initialState());Object.assign(current,target);vsiLag=initialLag();renderCockpit();internalView.update(current);updateAircraft();variables.forEach(v=>{document.getElementById(v.key).value=target[v.key];document.getElementById(`${v.key}-value`).textContent=format(v,target[v.key])})});
+document.querySelector('#reset').addEventListener('click',()=>{Object.assign(target,initialState());Object.assign(current,target);vsiLag=initialLag();resetFault();renderCockpit();internalView.update(current);updateAircraft();variables.forEach(v=>{document.getElementById(v.key).value=target[v.key];document.getElementById(`${v.key}-value`).textContent=format(v,target[v.key])})});
 let last=performance.now();
 select(instruments[0]);
 function frame(now){const previousFrame=last;smoothState(current,target,(now-last)/1000,motion.matches);last=now;renderCockpit((now-previousFrame)/1000);internalView.update(current,(now-previousFrame)/1000);updateAircraft((now-previousFrame)/1000);requestAnimationFrame(frame)}requestAnimationFrame(frame);
@@ -115,3 +123,7 @@ import('./aircraft/view.js')
     updateAircraft();
   })
   .catch(aircraftFailure);
+
+const faultPanel=document.querySelector('#faults-internal');
+document.querySelector('#pitot-static-faults').addEventListener('click',event=>{faultPanel.hidden=!faultPanel.hidden;event.currentTarget.setAttribute('aria-expanded',String(!faultPanel.hidden));updateFault();});
+import('./faults/pitot-static/view.js').then(({createFaultView})=>{if(disposed)return;faultView=createFaultView(faultPanel,()=>renderCockpit());updateFault();}).catch(faultFailure);
