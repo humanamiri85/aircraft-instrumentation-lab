@@ -1,4 +1,4 @@
-# Flight Instrument Lab — Phase 4A
+# Aircraft Instrumentation Lab — Phase 4B
 
 Interactive six-pack instrument learning page for undergraduate Measurement & Instrumentation. Plain HTML, CSS, JavaScript and dynamic SVG; no runtime dependencies.
 
@@ -611,3 +611,51 @@ visits across the three measurement chains, four-mode keyboard navigation, live
 values, Teaching Focus, Reset, all five widths (1440/1024/768/390/320), both motion
 preferences, WebGL fallback and independent measurement load/init/update failures.
 Screenshots are written to `/tmp/phase4a-*.png`.
+
+
+## Phase 4B — Gyroscopic Measurement Chain
+
+All six instruments now share four learning modes: Instrument Face, Internal
+Cutaway, How It Works and Measurement Chain. The gyro family uses one reusable
+system topology with selected-instrument Teaching Focus and five guided steps:
+
+- **AI:** pitch / bank → ideal stabilized **vertical** reference → relative case
+  motion → gimbal / display linkage → horizon and aircraft-symbol indication.
+- **HI:** heading / yaw → ideal **directional** reference → relative case rotation
+  → compass-card drive → heading beneath a fixed lubber line. Shortest-angle
+  handling preserves both north crossings; pitch and bank do not change heading.
+- **TC:** real angular-rate input → restrained rate gyro → precession tendency
+  → spring-restraint equilibrium → turn indication. **Bank is only the app's
+  teaching proxy, not the measurand or an angular rate.** No dimensional rate is
+  inferred. The inclinometer remains a separate, centered subsystem; no slip/skid
+  dynamics are simulated.
+
+`js/measurement/gyro/{model,content,view}.js` separates read-only educational
+state, chain explanations and rendering. The family adapter reuses the Phase
+3E–3G mechanism states, Phase 3 gyro reference / shortest-angle helpers and shared
+SVG assembly, plus existing cockpit renderers; calculations are not forked.
+A restrained assembly option omits the free outer gimbal, preserving the original
+assembly by default. The lazy chain extension shares Phase 3H / Phase 4A navigation
+and isolates import, initialization and update failures from the cockpit,
+pitot-static chains and original internal lessons.
+
+Physical principles (rigidity, angular momentum and precession), educational
+models (ideal references or bounded quasi-static proxy response) and visual
+mappings are identified separately. Geometry is conceptual, not
+manufacturer-specific hardware. Static spin-direction cues and live orientations
+carry the same information with reduced motion. Controls stay independent;
+heading and attitude are never integrated from Bank or angular rates.
+
+Validation covers both reference types, AI signs, HI 359° ↔ 0° wrap, TC bounded
+signed response / centered ball, sequential chain navigation, component and step
+keyboard controls, Teaching Focus, Reset, five viewport widths (1440, 1024, 768,
+390, 320), both motion preferences, WebGL fallback and gyro-chain failure cases.
+Run `npm run check`, `npm test`, and the full `npm run test:browser` suite using
+the existing browser-tooling setup.
+
+Phase 4C can compare the independent pitot-static and gyroscopic family adapters;
+no comparison feature is implemented yet. Drift, friction, drive / electrical
+failures, erection systems, Earth-rate / transport / latitude effects, magnetic
+slaving, caging, precession-error dynamics, calibrated real angular rates,
+coordinated-flight / slip-skid physics, noise, calibration and modern AHRS / MEMS
+systems remain outside this phase and belong to later work.
