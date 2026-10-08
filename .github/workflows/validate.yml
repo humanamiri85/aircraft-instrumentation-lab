@@ -42,4 +42,19 @@ jobs:
         run: |
           export PLAYWRIGHT_MODULE="$RUNNER_TEMP/aircraft-browser/node_modules/playwright/index.mjs"
           export CHROMIUM_PATH="$(node --input-type=module -e 'const {chromium} = await import(process.env.PLAYWRIGHT_MODULE); console.log(chromium.executablePath());')"
-          npm run test:browser
+          # Expose actionable diagnostics in the run summary when cloud agents
+          # cannot authenticate to the log viewer. Preserve the runner's status.
+          if npm run test:browser > "$RUNNER_TEMP/browser-regression.log" 2>&1; then
+            cat "$RUNNER_TEMP/browser-regression.log"
+          else
+            browser_status=$?
+            cat "$RUNNER_TEMP/browser-regression.log"
+            python3 - <<'PY'
+          import os, pathlib
+          lines = (pathlib.Path(os.environ['RUNNER_TEMP']) / 'browser-regression.log').read_text().splitlines()
+          message = '\n'.join(lines[-60:])[-12000:]
+          message = message.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
+          print('::error title=Browser regression failure::' + message)
+          PY
+            exit "$browser_status"
+          fi
