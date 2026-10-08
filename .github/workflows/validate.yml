@@ -1,0 +1,45 @@
+name: Validate
+
+on:
+  pull_request:
+    branches: [main]
+  # GITHUB_TOKEN-created PRs do not emit a new pull_request workflow run.
+  # Push validation supplies the same required check on the exact feature SHA.
+  push:
+    branches: ['phase-*', 'feature-*', 'chore-*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validate-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Aircraft Lab Validation
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install browser tooling outside checkout
+        run: npm install --prefix "$RUNNER_TEMP/aircraft-browser" --no-save --package-lock=false --no-audit --no-fund playwright@1.56.1
+      - name: Syntax and static checks
+        run: npm run check
+      - name: Full unit suite
+        run: npm test
+      - name: Install Chromium and system dependencies
+        run: node "$RUNNER_TEMP/aircraft-browser/node_modules/playwright/cli.js" install --with-deps chromium
+      - name: Complete browser regression
+        run: |
+          export PLAYWRIGHT_MODULE="$RUNNER_TEMP/aircraft-browser/node_modules/playwright/index.mjs"
+          export CHROMIUM_PATH="$(node --input-type=module -e 'const {chromium} = await import(process.env.PLAYWRIGHT_MODULE); console.log(chromium.executablePath());')"
+          npm run test:browser
