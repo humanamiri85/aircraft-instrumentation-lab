@@ -1,3 +1,4 @@
+import {checkFaults,checkFaultIsolation} from './fault-browser-checks.mjs';
 import {checkComparison,checkComparisonIsolation} from './comparison-browser-checks.mjs';
 import {checkGyroChains,checkGyroIsolation} from './gyro-measurement-browser-checks.mjs';
 import {checkPitotStatic,checkMeasurementIsolation} from './pitot-static-browser-checks.mjs';
@@ -29,7 +30,7 @@ const base = `http://127.0.0.1:${port}/${encodeURIComponent(root.split('/').at(-
 let browser;
 const results=[];
 try {
-  for (const scenario of ['normal','missing-view','missing-cues','missing-three','missing-three-core','init-throws','update-throws','frame-throws','input-throws','missing-lesson','lesson-update-throws','missing-chain','chain-init-throws','chain-update-throws','missing-gyro-chain','gyro-chain-init-throws','gyro-chain-update-throws','missing-comparison','comparison-init-throws','comparison-update-throws','webgl-disabled']) {
+  for (const scenario of ['normal','missing-view','missing-cues','missing-three','missing-three-core','init-throws','update-throws','frame-throws','input-throws','missing-lesson','lesson-update-throws','missing-chain','chain-init-throws','chain-update-throws','missing-gyro-chain','gyro-chain-init-throws','gyro-chain-update-throws','missing-comparison','comparison-init-throws','comparison-update-throws','missing-fault','fault-init-throws','fault-update-throws','webgl-disabled']) {
     browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH || '/usr/bin/chromium',headless:true,args:['--no-sandbox',...(scenario==='webgl-disabled'?['--disable-webgl']:['--use-angle=swiftshader','--enable-unsafe-swiftshader'])]});
     const page=await browser.newPage({reducedMotion:'reduce'});
     const errors=[],network=[];
@@ -58,12 +59,15 @@ try {
     if(scenario==='missing-gyro-chain')await page.route('**/js/measurement/gyro/view.js',route=>route.fulfill({status:404,contentType:'text/javascript',body:'// Deliberately missing gyro chain'}));
     if(scenario==='gyro-chain-init-throws')await page.route('**/js/measurement/gyro/view.js',route=>route.fulfill({contentType:'text/javascript',body:'export function createGyroChainView(){throw new Error("Injected gyro chain initialization failure");}'}));
     if(scenario==='gyro-chain-update-throws')await page.route('**/js/measurement/gyro/view.js',route=>route.fulfill({contentType:'text/javascript',body:'export function createGyroChainView(panel){panel.innerHTML="<div class=gc-system>Injected gyro chain</div>";return {setFocus(){},update(state){if(state.bank===20)throw new Error("Injected gyro chain update failure");}};}'}));
+    if(scenario==='missing-fault')await page.route('**/js/faults/pitot-static/view.js',route=>route.fulfill({status:404,contentType:'text/javascript',body:'// deliberately absent fault feature'}));
+    if(scenario==='fault-init-throws')await page.route('**/js/faults/pitot-static/view.js',route=>route.fulfill({contentType:'text/javascript',body:'export function createFaultView(){throw new Error("Injected fault init failure");}'}));
+    if(scenario==='fault-update-throws')await page.route('**/js/faults/pitot-static/view.js',route=>route.fulfill({contentType:'text/javascript',body:'export function createFaultView(){return {transform(state){return {state};},setFocus(){},update(state){if(state.airspeed===170)throw new Error("Injected fault update failure");}};}'}));
     if(scenario==='missing-comparison')await page.route('**/js/measurement/comparison/view.js',route=>route.fulfill({status:404,contentType:'text/javascript',body:'// Deliberately missing comparison'}));
     if(scenario==='comparison-init-throws')await page.route('**/js/measurement/comparison/view.js',route=>route.fulfill({contentType:'text/javascript',body:'export function createComparisonView(){throw new Error("Injected comparison initialization failure");}'}));
     if(scenario==='comparison-update-throws')await page.route('**/js/measurement/comparison/view.js',route=>route.fulfill({contentType:'text/javascript',body:'export function createComparisonView(panel){panel.innerHTML="<div data-comparison-injected>Injected comparison</div>";return {select(){},open(){panel.hidden=false;},setExtensionFocus(){},update(state){if(state.airspeed===170)throw new Error("Injected comparison update failure");}};}'}));
     await page.goto(base);
     await page.waitForFunction(()=>document.querySelectorAll('input[type=range]').length===6);
-    if(['normal','input-throws','missing-lesson','lesson-update-throws','missing-chain','chain-init-throws','chain-update-throws','missing-gyro-chain','gyro-chain-init-throws','gyro-chain-update-throws','missing-comparison','comparison-init-throws','comparison-update-throws'].includes(scenario)) {
+    if(['normal','input-throws','missing-lesson','lesson-update-throws','missing-chain','chain-init-throws','chain-update-throws','missing-gyro-chain','gyro-chain-init-throws','gyro-chain-update-throws','missing-comparison','comparison-init-throws','comparison-update-throws','missing-fault','fault-init-throws','fault-update-throws'].includes(scenario)) {
       await page.waitForFunction(()=>document.querySelector('.aircraft-status').hidden);
       for(const resource of ['js/app.js','js/model.js','js/catalog.js','js/aircraft/view.js','js/aircraft/orientation.js','js/aircraft/flight-cues.js','vendor/three/three.module.js','vendor/three/three.core.js']){
         const response=await page.request.get(base+resource);assert.equal(response.status(),200,resource);assert.match(response.headers()['content-type'],/javascript/,resource);
@@ -137,11 +141,13 @@ try {
       await checkPitotStatic(page,scenario);
       await checkGyroChains(page,scenario);
       await checkComparison(page,scenario);
+      await checkFaults(page);
     }
     if(['missing-lesson','lesson-update-throws'].includes(scenario))await checkLessonIsolation(page,scenario);
     if(['missing-chain','chain-init-throws','chain-update-throws'].includes(scenario))await checkMeasurementIsolation(page,scenario);
     if(['missing-gyro-chain','gyro-chain-init-throws','gyro-chain-update-throws'].includes(scenario))await checkGyroIsolation(page,scenario);
     if(['missing-comparison','comparison-init-throws','comparison-update-throws'].includes(scenario))await checkComparisonIsolation(page,scenario);
+    if(['missing-fault','fault-init-throws','fault-update-throws'].includes(scenario))await checkFaultIsolation(page,scenario);
     if(scenario==='normal') {
       for(const [name,width,height] of [['desktop',1440,1000],['tablet',768,1024],['mobile',390,844],['small-mobile',320,700]]) {
         await page.setViewportSize({width,height});
