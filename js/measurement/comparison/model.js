@@ -1,0 +1,38 @@
+import {routes,systemState as pressureState} from '../pitot-static/model.js';
+import {referenceTypes,systemState as gyroState,focusedPaths} from '../gyro/model.js';
+import {titles as gyroTitles,proxyNote} from '../gyro/content.js';
+
+export const families=Object.freeze({'pitot-static':Object.freeze(['airspeed','altimeter','vsi']),gyroscopic:Object.freeze(['attitude','heading','turn'])});
+// Machine-readable sensing kinds and routes make scientific negatives testable.
+// These definitions can later identify affected chain elements without adding faults.
+const definitions={
+  airspeed:{title:'Airspeed Indicator',targetQuantity:'Airspeed',directlySensedQuantity:'Differential pressure q = Pt − Ps',physicalInputKind:'differential-pressure',sourceOrReference:'Pitot total pressure Pt and static pressure Ps',transmission:'Separate pitot and static pressure lines',sensingElement:'Differential diaphragm',conversion:'Mechanical linkage',output:'Airspeed indication',measurementType:'pressure-based',isInferred:true,inference:'Airspeed inferred from dynamic pressure using the existing fixed-density relation.',teachingSimplification:'Fixed density ρ = 1.225 kg/m³; existing simplified q-to-airspeed relation, independent of altitude.',badges:['PRESSURE-BASED','INFERRED OUTPUT']},
+  altimeter:{title:'Altimeter',targetQuantity:'Altitude',directlySensedQuantity:'Static pressure Ps',physicalInputKind:'static-pressure',sourceOrReference:'Ambient static pressure Ps',transmission:'Static line only',sensingElement:'Sealed aneroid capsule',conversion:'Mechanical gear train',output:'Altitude indication',measurementType:'pressure-based',isInferred:true,inference:'Altitude inferred from static pressure using the existing standard-atmosphere relationship.',teachingSimplification:'Existing standard atmosphere and fixed pressure setting; altitude control sets the pressure reference without flight dynamics.',badges:['PRESSURE-BASED','INFERRED OUTPUT']},
+  vsi:{title:'Vertical Speed Indicator',targetQuantity:'Vertical speed',directlySensedQuantity:'Rate / history of static-pressure change',physicalInputKind:'static-pressure-history',sourceOrReference:'Time-dependent static pressure Ps',transmission:'Static line; calibrated lag stays inside the instrument',sensingElement:'Diaphragm plus calibrated pressure lag',conversion:'Mechanical linkage',output:'Vertical-speed indication',measurementType:'pressure-based',isInferred:true,inference:'Vertical speed inferred from time-dependent static-pressure behavior, not directly sensed geometric vertical velocity.',teachingSimplification:'Existing normalized moving-pressure-reference lag is driven by the Vertical Speed control. It never integrates altitude or creates absolute pressure drift.',badges:['PRESSURE-BASED','DYNAMIC / INFERRED OUTPUT']},
+  attitude:{title:gyroTitles.attitude,targetQuantity:'Pitch / bank attitude',directlySensedQuantity:'Relative orientation to stabilized vertical reference',physicalInputKind:'relative-vertical-orientation',sourceOrReference:'Ideal stabilized vertical gyro; inertial / gravity-referenced framework',transmission:'Aircraft-case motion relative to stabilized vertical reference',sensingElement:'Vertical gyro and gimbal reference mechanism',conversion:'Display linkage / relative horizon motion',output:'Pitch and bank indication',measurementType:'reference-based',isInferred:false,inference:'Reference-based orientation indication; heading does not change pitch / bank output.',teachingSimplification:'Ideal world-up reference; conceptual geometry, no drift or erection dynamics.',badges:['REFERENCE-BASED']},
+  heading:{title:gyroTitles.heading,targetQuantity:'Heading',directlySensedQuantity:'Relative yaw orientation to directional gyro reference',physicalInputKind:'relative-directional-orientation',sourceOrReference:'Ideal directional gyro; heading / azimuth reference',transmission:'Relative case / directional-reference rotation',sensingElement:'Directional gyro and gimbal reference mechanism',conversion:'Gear / compass-card rotation',output:'Heading beneath fixed lubber line',measurementType:'reference-based',isInferred:false,inference:'Reference-based heading indication; pitch and bank do not change heading output.',teachingSimplification:'Ideal directional reference initially aligned north; existing shortest-angle wrap, no drift or magnetic slaving.',badges:['REFERENCE-BASED']},
+  turn:{title:gyroTitles.turn,targetQuantity:'Turn-rate indication',directlySensedQuantity:'Angular rate in a real instrument',physicalInputKind:'angular-rate',sourceOrReference:'Aircraft angular-rate input; restrained gyro response',transmission:'Gyroscopic precession tendency against spring restraint',sensingElement:'Restrained rate gyro',conversion:'Spring-restraint equilibrium and display linkage',output:'Turn indication',measurementType:'rate-sensitive',isInferred:false,inference:'Rate-sensitive indication in a real instrument. This app demonstrates response direction and magnitude without calculating angular rate.',teachingSimplification:proxyNote+' Bounded quasi-static deflection; separate centered ball, no slip/skid physics.',teachingInput:'Bank proxy',badges:['RATE-SENSITIVE','APP INPUT: BANK PROXY']}
+};
+export const instruments=Object.freeze(Object.fromEntries(Object.entries(definitions).map(([id,data])=>{
+  const chain=[['physical-input',data.directlySensedQuantity],['source-reference',data.sourceOrReference],['transmission',data.transmission],['sensing-element',data.sensingElement],['conversion',data.conversion],['indication',data.output]];
+  return [id,Object.freeze({id,...data,family:routes[id]?'pitot-static':'gyroscopic',pressureInputs:routes[id]||Object.freeze([]),referenceType:referenceTypes[id]||null,badges:Object.freeze(data.badges),chain:Object.freeze(chain.map(([element,label])=>Object.freeze({element,label})))})];
+})));
+export function selection(left='airspeed',right='attitude') {
+  if(!families['pitot-static'].includes(left)||!families.gyroscopic.includes(right))throw new RangeError('Select one instrument from each family');
+  return {left:instruments[left],right:instruments[right],gyroFocus:focusedPaths(right),pressureInputs:routes[left]};
+}
+// Reuse the same application lag object; comparison never advances its own VSI.
+export function liveState(state,lag,previousHeading) {return {pressure:pressureState(state,lag),gyro:gyroState(state,previousHeading)};}
+export function liveValues(id,state) {
+  const p=state.pressure,g=state.gyro;
+  const number=value=>Math.round(value).toLocaleString('en-US');
+  const signed=value=>`${value>0?'+':''}${value}°`;
+  const pressure=[['ps','Static pressure Ps',`${(p.ps/1000).toFixed(1)} kPa`]];
+  if(id==='airspeed')return [['airspeed','Airspeed',`${number(p.airspeed)} kt`],['q','Dynamic pressure q',`${number(p.q)} Pa`],...pressure,['pt','Total pressure Pt',`${(p.pt/1000).toFixed(1)} kPa`]];
+  if(id==='altimeter')return [['altitude','Altitude',`${number(p.altitude)} ft`],...pressure];
+  if(id==='vsi')return [['verticalSpeed','Vertical speed input',`${number(p.verticalSpeed)} ft/min`],['trend','Static-pressure trend',p.trend],['lag','VSI lag',`${(p.vsiDifferential*100).toFixed(1)}% relative scale`],['indicated','VSI indication',`${number(p.vsiIndicated)} ft/min`]];
+  if(id==='attitude')return [['pitch','Pitch',signed(g.attitude.pitch)],['bank','Bank',signed(g.attitude.bank)]];
+  if(id==='heading')return [['heading','Heading',g.heading.reading]];
+  if(id==='turn')return [['bankProxy','App control · Bank proxy',signed(g.turn.bank)],['deflection','Gyro deflection',`${g.turn.rateProxy.toFixed(2)} normalized · ${g.turn.direction}`],['measurand','Real measurand','Angular rate']];
+  throw new RangeError('Unknown instrument');
+}

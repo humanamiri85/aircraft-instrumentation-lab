@@ -8,7 +8,8 @@ const lessons=[
   ['attitude','attitude','createAttitudeInternalView',()=>import('./attitude/view.js')],
   ['heading','heading','createHeadingInternalView',()=>import('./heading/view.js')],
   ['turn','turn','createTurnInternalView',()=>import('./turn/view.js')],
-  ['gyro','gyro','createGyroView',()=>import('./gyro/view.js')]
+  ['gyro','gyro','createGyroView',()=>import('./gyro/view.js')],
+  ['comparison','comparison','createComparisonView',()=>import('../measurement/comparison/view.js')]
 ];
 export function createInternalLessons() {
   const entries=new Map(lessons.map(([id,prefix,factory,load])=>[id,{panel:document.querySelector(`#${prefix}-internal`),factory,load}]));
@@ -21,11 +22,12 @@ export function createInternalLessons() {
     entry.view=undefined;entry.failed=true;
     // Preserve the section heading referenced by aria-labelledby, replacing partial content.
     const heading=document.createElement('h2');heading.id=entry.panel.getAttribute('aria-labelledby');
-    heading.textContent=id==='gyro'?'Gyroscope Fundamentals':`${id==='airspeed'?'Airspeed':id[0].toUpperCase()+id.slice(1)} internal lesson`;
+    heading.textContent=id==='comparison'?'Measurement Chain Comparison':id==='gyro'?'Gyroscope Fundamentals':`${id==='airspeed'?'Airspeed':id[0].toUpperCase()+id.slice(1)} internal lesson`;
     const status=document.createElement('p');status.setAttribute('role','status');
-    status.textContent='This internal lesson is unavailable. The cockpit, controls and other lessons remain usable.';
+    status.textContent=id==='comparison'?'Measurement Chain Comparison is unavailable. The cockpit, controls and other lessons remain usable.':'This internal lesson is unavailable. The cockpit, controls and other lessons remain usable.';
     entry.panel.replaceChildren(heading,status);
-    entry.panel.hidden=id!==selected;
+    if(id!=='comparison')entry.panel.hidden=id!==selected;
+    else if(entry.pendingOpen){entry.panel.hidden=false;entry.pendingOpen=false;document.querySelector('#measurement-comparison').setAttribute('aria-expanded','true');}
   }
   function run(id,action) {
     const entry=entries.get(id);
@@ -43,7 +45,7 @@ export function createInternalLessons() {
   function synchronize(id) {
     const entry=entries.get(id);
     run(id,view=>view.select(selected));
-    if(entry.failed)entry.panel.hidden=id!==selected;
+    if(entry.failed&&id!=='comparison')entry.panel.hidden=id!==selected;
     updateOne(id);applyFocus();
     if(entry.pendingOpen){entry.pendingOpen=false;run(id,view=>view.open());updateOne(id);}
   }
@@ -75,6 +77,8 @@ export function createInternalLessons() {
     open(id=selected) {
       const entry=entries.get(id);
       if(!entry)return;
+      if(id==='comparison'&&!entry.panel.hidden){entry.panel.hidden=true;document.querySelector('#measurement-comparison').setAttribute('aria-expanded','false');return;}
+      if(id==='comparison'&&entry.failed){entry.panel.hidden=false;document.querySelector('#measurement-comparison').setAttribute('aria-expanded','true');return;}
       if(!entry.view&&!entry.failed){entry.pendingOpen=true;return;}
       run(id,view=>view.open());updateOne(id);
     },
