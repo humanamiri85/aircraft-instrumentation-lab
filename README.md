@@ -1,4 +1,4 @@
-# Aircraft Instrumentation Lab — Phase 4B
+# Aircraft Instrumentation Lab — Phase 4C
 
 Interactive six-pack instrument learning page for undergraduate Measurement & Instrumentation. Plain HTML, CSS, JavaScript and dynamic SVG; no runtime dependencies.
 
@@ -659,3 +659,63 @@ failures, erection systems, Earth-rate / transport / latitude effects, magnetic
 slaving, caging, precession-error dynamics, calibrated real angular rates,
 coordinated-flight / slip-skid physics, noise, calibration and modern AHRS / MEMS
 systems remain outside this phase and belong to later work.
+
+
+## Phase 4C — Measurement Chain Comparison
+
+Open **Measurement Chain Comparison** from the cockpit's system-learning
+navigation. This dedicated workspace preserves the four instrument lesson modes.
+Select ASI / Altimeter / VSI on the left and AI / HI / TC on the right; all nine
+cross-family pairings are available. Guided presets compare pressure with
+orientation, inferred altitude with reference heading, and different dynamic
+response concepts. Neither selection nor presets change flight-state controls.
+
+**What Is Actually Measured?** separates the desired / displayed quantity from
+its directly sensed physical input or reference-based sensing concept. Selected
+cards update immediately; an expandable overview includes all six instruments:
+
+- ASI infers airspeed from differential pressure **Pt − Ps**, using the existing
+  simplified fixed-density relationship.
+- Altimeter infers altitude from **static pressure Ps** and the existing standard
+  atmosphere; it has no pitot connection.
+- VSI infers vertical speed from **static-pressure change / history** and an
+  internal calibrated lag, rather than directly sensing geometric velocity.
+- AI uses an ideal stabilized **vertical** reference for pitch / bank; HI uses a
+  distinct ideal **directional** reference for heading.
+- A real TC senses **angular rate**. **Bank is only the app's teaching proxy**;
+  no actual angular rate or slip/skid dynamics is calculated.
+
+The side-by-side family workspace compares physical input, source/reference,
+transmission/relative motion, sensing element, conversion, indication,
+direct-vs-inferred interpretation and educational simplification. Text badges,
+compact chains, live values, concise terminology and ungraded **Think About It**
+explanations support synthesis without introducing formal assessment.
+
+`js/measurement/comparison/model.js` contains immutable, normalized instrument
+metadata and read-only mappings to existing Phase 4A/4B adapters.
+`content.js` contains family explanations, presets and teaching notes; `view.js`
+renders selectors, cards and focus. Stable chain-element identifiers and shared
+pressure routes keep definitions reusable by later Phase 5 work; fault scenarios
+are not implemented. The comparison uses the application's existing VSI lag
+object and gyro states, never a second lag or duplicated scientific calculation.
+
+Comparison loading, initialization and update failures are isolated by the
+existing optional-lesson controller. Cockpit controls, Phase 3 internals and both
+Phase 4 measurement-chain families remain usable. The workspace retains its
+selected pair through Reset and cockpit selection changes; Teaching Focus
+emphasizes both selected chains without changing the cockpit's existing links.
+Semantic selectors, keyboard controls, visible focus, readable stacked mobile
+cards and static content preserve accessibility and reduced-motion behavior.
+
+Validation adds metadata and scientific-negative invariants, all nine pairings,
+sequential presets, shared live/lag values, independent inputs, five widths,
+both motion preferences, keyboard/Reset/focus, WebGL fallback and three injected
+software-feature failures. Run the unchanged required commands: `npm run check`,
+`npm test` and the complete `npm run test:browser` suite.
+
+No new physics, failure diagnosis, blockages/leaks, gyro drift, instrument errors,
+noise, calibration/uncertainty, electronic sensing, ADC, signal conditioning,
+AHRS, Air Data Computer or formal quizzes are introduced. Recommended Phase 5
+entry point: reuse metadata `chain` element IDs and existing `pressureInputs`
+routes to identify affected elements and shared paths, then add a separately
+validated fault model rather than embedding fault behavior in comparison HTML.

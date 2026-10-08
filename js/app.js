@@ -102,6 +102,7 @@ let last=performance.now();
 select(instruments[0]);
 function frame(now){const previousFrame=last;smoothState(current,target,(now-last)/1000,motion.matches);last=now;renderCockpit((now-previousFrame)/1000);internalView.update(current,(now-previousFrame)/1000);updateAircraft((now-previousFrame)/1000);requestAnimationFrame(frame)}requestAnimationFrame(frame);
 
+document.querySelector('#measurement-comparison').addEventListener('click',()=>lessons.open('comparison'));
 lessons.start();
 
 // Core controls, instruments and the frame loop are ready before optional imports.
