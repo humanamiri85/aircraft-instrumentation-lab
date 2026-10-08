@@ -1,3 +1,4 @@
+import {checkDiagnostics,checkDiagnosticIsolation} from './diagnostic-browser-checks.mjs';
 import {checkGyroFaults,checkGyroFaultIsolation} from './gyro-fault-browser-checks.mjs';
 import {checkFaults,checkFaultIsolation} from './fault-browser-checks.mjs';
 import {checkComparison,checkComparisonIsolation} from './comparison-browser-checks.mjs';
@@ -31,7 +32,7 @@ const base = `http://127.0.0.1:${port}/${encodeURIComponent(root.split('/').at(-
 let browser;
 const results=[];
 try {
-  for (const scenario of ['normal','missing-view','missing-cues','missing-three','missing-three-core','init-throws','update-throws','frame-throws','input-throws','missing-lesson','lesson-update-throws','missing-chain','chain-init-throws','chain-update-throws','missing-gyro-chain','gyro-chain-init-throws','gyro-chain-update-throws','missing-comparison','comparison-init-throws','comparison-update-throws','missing-fault','fault-init-throws','fault-update-throws','missing-gyro-fault','gyro-fault-init-throws','gyro-fault-update-throws','webgl-disabled']) {
+  for (const scenario of ['normal','missing-view','missing-cues','missing-three','missing-three-core','init-throws','update-throws','frame-throws','input-throws','missing-lesson','lesson-update-throws','missing-chain','chain-init-throws','chain-update-throws','missing-gyro-chain','gyro-chain-init-throws','gyro-chain-update-throws','missing-comparison','comparison-init-throws','comparison-update-throws','missing-fault','fault-init-throws','fault-update-throws','missing-gyro-fault','gyro-fault-init-throws','gyro-fault-update-throws','missing-diagnostics','diagnostic-init-throws','diagnostic-update-throws','webgl-disabled']) {
     browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH || '/usr/bin/chromium',headless:true,args:['--no-sandbox',...(scenario==='webgl-disabled'?['--disable-webgl']:['--use-angle=swiftshader','--enable-unsafe-swiftshader'])]});
     const page=await browser.newPage({reducedMotion:'reduce'});
     const errors=[],network=[];
@@ -69,9 +70,12 @@ try {
     if(scenario==='missing-comparison')await page.route('**/js/measurement/comparison/view.js',route=>route.fulfill({status:404,contentType:'text/javascript',body:'// Deliberately missing comparison'}));
     if(scenario==='comparison-init-throws')await page.route('**/js/measurement/comparison/view.js',route=>route.fulfill({contentType:'text/javascript',body:'export function createComparisonView(){throw new Error("Injected comparison initialization failure");}'}));
     if(scenario==='comparison-update-throws')await page.route('**/js/measurement/comparison/view.js',route=>route.fulfill({contentType:'text/javascript',body:'export function createComparisonView(panel){panel.innerHTML="<div data-comparison-injected>Injected comparison</div>";return {select(){},open(){panel.hidden=false;},setExtensionFocus(){},update(state){if(state.airspeed===170)throw new Error("Injected comparison update failure");}};}'}));
+    if(scenario==='missing-diagnostics')await page.route('**/js/diagnostics/view.js',route=>route.fulfill({status:404,contentType:'text/javascript',body:'// missing diagnostics'}));
+    if(scenario==='diagnostic-init-throws')await page.route('**/js/diagnostics/view.js',route=>route.fulfill({contentType:'text/javascript',body:'export function createDiagnosticView(){throw new Error("Injected diagnostic init failure");}'}));
+    if(scenario==='diagnostic-update-throws')await page.route('**/js/diagnostics/view.js',route=>route.fulfill({contentType:'text/javascript',body:'export function createDiagnosticView(){return {open(){},setFocus(){},update(state){if(state.pitch===18)throw new Error("Injected diagnostic update failure");}};}'}));
     await page.goto(base);
     await page.waitForFunction(()=>document.querySelectorAll('input[type=range]').length===6);
-    if(['normal','input-throws','missing-lesson','lesson-update-throws','missing-chain','chain-init-throws','chain-update-throws','missing-gyro-chain','gyro-chain-init-throws','gyro-chain-update-throws','missing-comparison','comparison-init-throws','comparison-update-throws','missing-fault','fault-init-throws','fault-update-throws','missing-gyro-fault','gyro-fault-init-throws','gyro-fault-update-throws'].includes(scenario)) {
+    if(['normal','input-throws','missing-lesson','lesson-update-throws','missing-chain','chain-init-throws','chain-update-throws','missing-gyro-chain','gyro-chain-init-throws','gyro-chain-update-throws','missing-comparison','comparison-init-throws','comparison-update-throws','missing-fault','fault-init-throws','fault-update-throws','missing-gyro-fault','gyro-fault-init-throws','gyro-fault-update-throws','missing-diagnostics','diagnostic-init-throws','diagnostic-update-throws'].includes(scenario)) {
       await page.waitForFunction(()=>document.querySelector('.aircraft-status').hidden);
       for(const resource of ['js/app.js','js/model.js','js/catalog.js','js/aircraft/view.js','js/aircraft/orientation.js','js/aircraft/flight-cues.js','vendor/three/three.module.js','vendor/three/three.core.js']){
         const response=await page.request.get(base+resource);assert.equal(response.status(),200,resource);assert.match(response.headers()['content-type'],/javascript/,resource);
@@ -147,6 +151,7 @@ try {
       await checkComparison(page,scenario);
       await checkFaults(page);
       await checkGyroFaults(page);
+      await checkDiagnostics(page);
     }
     if(['missing-lesson','lesson-update-throws'].includes(scenario))await checkLessonIsolation(page,scenario);
     if(['missing-chain','chain-init-throws','chain-update-throws'].includes(scenario))await checkMeasurementIsolation(page,scenario);
@@ -154,6 +159,7 @@ try {
     if(['missing-comparison','comparison-init-throws','comparison-update-throws'].includes(scenario))await checkComparisonIsolation(page,scenario);
     if(['missing-fault','fault-init-throws','fault-update-throws'].includes(scenario))await checkFaultIsolation(page,scenario);
     if(['missing-gyro-fault','gyro-fault-init-throws','gyro-fault-update-throws'].includes(scenario))await checkGyroFaultIsolation(page,scenario);
+    if(['missing-diagnostics','diagnostic-init-throws','diagnostic-update-throws'].includes(scenario))await checkDiagnosticIsolation(page,scenario);
     if(scenario==='normal') {
       for(const [name,width,height] of [['desktop',1440,1000],['tablet',768,1024],['mobile',390,844],['small-mobile',320,700]]) {
         await page.setViewportSize({width,height});

@@ -7,6 +7,10 @@ let focus=initialFocus();
 let vsiLag=initialLag();
 let faultView;
 let gyroFaultView;
+let diagnosticView;
+function diagnosticFailure(error){console.error('Optional diagnostics failed:',error);diagnosticView=undefined;document.querySelector('#diagnostics-internal').innerHTML='<h2 id="diagnostics-title">Diagnostic Scenarios</h2><p role="status">Diagnostics unavailable. Cockpit, fault injection and other lessons remain usable.</p>';}
+function updateDiagnostics(dt=0){try{diagnosticView?.setFocus(focus.enabled);diagnosticView?.update(current,dt);}catch(error){diagnosticFailure(error);}}
+function resetDiagnostics(){try{diagnosticView?.reset?.();}catch(error){diagnosticFailure(error);}}
 function gyroFaultFailure(error){console.error('Optional gyro faults failed:',error);gyroFaultView=undefined;document.querySelector('#gyro-faults-internal').innerHTML='<h2 id="gyro-faults-title">Gyro Faults</h2><p role="status">Gyro fault lesson unavailable. Healthy gyro cockpit, pressure faults and other lessons remain usable.</p>';}
 function gyroFaultInputs(dt){try{return gyroFaultView?.tick(current,dt)||{};}catch(error){gyroFaultFailure(error);return {};}}
 function updateGyroFault(){try{gyroFaultView?.setFocus(focus.enabled);gyroFaultView?.update(current,motion.matches);}catch(error){gyroFaultFailure(error);}}
@@ -27,7 +31,7 @@ function renderCockpit(dt=0) {
   vsiLag=advanceLag(vsiLag,effective.verticalSpeed,dt,motion.matches);
   const indicated={...effective,verticalSpeed:vsiMechanism(vsiLag,effective.verticalSpeed).indicated};
   renderers.forEach(r=>{const state=r.id==='vsi'?indicated:gyroEffective[r.id]?{...effective,...gyroEffective[r.id]}:effective;r.update(state);r.value.textContent=r.read(state)});
-  updateFault();updateGyroFault();
+  updateFault();updateGyroFault();updateDiagnostics(dt);
 }
 
 let aircraftView;
@@ -110,7 +114,7 @@ function select(instrument) {
 document.querySelector('#teaching-focus').addEventListener('change',event=>{
   focus=toggleFocus(focus,event.target.checked);applyFocus();
 });
-document.querySelector('#reset').addEventListener('click',()=>{Object.assign(target,initialState());Object.assign(current,target);vsiLag=initialLag();resetFault();resetGyroFault();renderCockpit();internalView.update(current);updateAircraft();variables.forEach(v=>{document.getElementById(v.key).value=target[v.key];document.getElementById(`${v.key}-value`).textContent=format(v,target[v.key])})});
+document.querySelector('#reset').addEventListener('click',()=>{Object.assign(target,initialState());Object.assign(current,target);vsiLag=initialLag();resetFault();resetGyroFault();resetDiagnostics();renderCockpit();internalView.update(current);updateAircraft();variables.forEach(v=>{document.getElementById(v.key).value=target[v.key];document.getElementById(`${v.key}-value`).textContent=format(v,target[v.key])})});
 let last=performance.now();
 select(instruments[0]);
 function frame(now){const previousFrame=last;smoothState(current,target,(now-last)/1000,motion.matches);last=now;renderCockpit((now-previousFrame)/1000);internalView.update(current,(now-previousFrame)/1000);updateAircraft((now-previousFrame)/1000);requestAnimationFrame(frame)}requestAnimationFrame(frame);
@@ -136,3 +140,7 @@ import('./faults/pitot-static/view.js').then(({createFaultView})=>{if(disposed)r
 const gyroFaultPanel=document.querySelector('#gyro-faults-internal');
 document.querySelector('#gyro-faults').addEventListener('click',event=>{gyroFaultPanel.hidden=!gyroFaultPanel.hidden;event.currentTarget.setAttribute('aria-expanded',String(!gyroFaultPanel.hidden));updateGyroFault();});
 import('./faults/gyro/view.js').then(({createGyroFaultView})=>{if(disposed)return;gyroFaultView=createGyroFaultView(gyroFaultPanel,()=>renderCockpit());updateGyroFault();}).catch(gyroFaultFailure);
+
+const diagnosticPanel=document.querySelector('#diagnostics-internal');
+document.querySelector('#diagnostic-scenarios').addEventListener('click',event=>{diagnosticPanel.hidden=!diagnosticPanel.hidden;event.currentTarget.setAttribute('aria-expanded',String(!diagnosticPanel.hidden));try{if(!diagnosticPanel.hidden)diagnosticView?.open();updateDiagnostics();}catch(error){diagnosticFailure(error);}});
+import('./diagnostics/view.js').then(({createDiagnosticView})=>{if(disposed)return;diagnosticView=createDiagnosticView(diagnosticPanel,{setFlightState(state){Object.assign(target,state);Object.assign(current,state);variables.forEach(v=>{document.getElementById(v.key).value=state[v.key];document.getElementById(`${v.key}-value`).textContent=format(v,state[v.key]);});renderCockpit();internalView.update(current);updateAircraft();}});if(!diagnosticPanel.hidden)diagnosticView.open();}).catch(diagnosticFailure);

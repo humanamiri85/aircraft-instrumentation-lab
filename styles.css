@@ -184,3 +184,22 @@
 .faults-panel summary{cursor:pointer}
 @media(max-width:768px){.fault-values,.fault-cards,.fault-matrix{grid-template-columns:1fr}.faults-panel select{width:100%}}
 .gyro-faults-panel fieldset{display:flex;flex-wrap:wrap;gap:12px;align-items:center;min-width:0;border:1px solid var(--line);padding:16px}.gyro-faults-panel select,.gyro-faults-panel input{font:inherit;padding:8px;max-width:100%;min-width:0}.gyro-faults-panel fieldset p{flex-basis:100%;overflow-wrap:anywhere}.gyro-faults-panel label input{display:block;width:130px}.gyro-fault-path{outline:2px dashed var(--accent);outline-offset:-3px}.gyro-faults-panel details{border:1px solid var(--line);padding:12px;margin:8px 0}.gyro-faults-panel summary{cursor:pointer}@media(max-width:768px){.gyro-faults-panel select{width:100%}}
+
+/* Diagnostic synthesis uses the existing chain/card language. Candidate columns
+   become stacked cards rather than a horizontally scrolling tiny-text table. */
+.dx-toolbar,.dx-actions{display:flex;flex-wrap:wrap;gap:12px;margin:16px 0;align-items:end}
+.dx-toolbar>label{display:grid;gap:6px;flex:1 1 180px;min-width:0}
+.dx-toolbar select,.dx-toolbar input,.dx-candidates select,.dx-matrix select{font:inherit;color:var(--text,#e9eee9);background:#171e23;border:1px solid #64777d;border-radius:5px;padding:9px;width:100%;min-width:0}
+.dx-faces{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.dx-faces article,.dx-evidence article,.dx-matrix article{border:1px solid #51636b;border-radius:8px;padding:12px;min-width:0;background:#182125}
+.dx-faces h4{margin:0 0 8px}.dx-faces .drawing{max-width:180px;margin:auto}.dx-faces svg{width:100%;height:auto;display:block}.dx-faces output{display:block;text-align:center;margin-top:8px}
+.dx-focus{outline:2px solid #e6bb78;outline-offset:1px}
+.dx-evidence,.dx-candidates,.dx-matrix{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:16px 0}
+.dx-evidence p{margin-bottom:0}.dx-candidates label{display:grid;gap:8px;min-width:0}.dx-matrix label{display:grid;gap:5px;padding:10px 0;border-top:1px solid #51636b}.dx-matrix [data-dx-answer]{font-weight:700}
+.dx-reasoning{margin:20px 0}.dx-reasoning summary{cursor:pointer;padding:12px;border:1px solid #64777d;border-radius:5px}
+.dx-trace>div,[data-dx-healthy-values] dl>div{padding:10px;border-bottom:1px solid #51636b}.dx-trace dt,[data-dx-healthy-values] dt{font-weight:700}.dx-trace dd,[data-dx-healthy-values] dd{margin:6px 0}
+.dx-fault-location{outline:3px dashed #e9bb75;outline-offset:2px}.ps-topology .dx-fault-location{outline:none;stroke:#e9bb75;stroke-width:4;stroke-dasharray:7 4}
+.diagnostics-panel{overflow-wrap:anywhere}.diagnostics-panel button{white-space:normal}.diagnostics-panel :focus-visible{outline:3px solid #f1c77d;outline-offset:3px}
+@media(max-width:768px){.dx-evidence,.dx-candidates,.dx-matrix{grid-template-columns:1fr}.dx-faces{grid-template-columns:repeat(2,minmax(0,1fr))}.dx-toolbar>label{flex-basis:100%}}
+@media(max-width:390px){.dx-faces{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.diagnostics-panel *{animation:none!important;transition:none!important}}
