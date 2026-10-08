@@ -761,3 +761,45 @@ No new healthy physics, flight dynamics, mechanical failures, icing or generic
 leak model is introduced. Static-to-cabin leakage remains deferred until a
 validated cabin-pressure model exists. The fault lesson loads independently;
 import, initialization or update failure falls back to healthy cockpit operation.
+
+### Phase 5B — Gyroscopic failures and reference degradation
+
+**Gyro Faults** adds a separately loaded `js/faults/gyro/` transformation layer.
+Healthy AI/HI/TC models, gyro reference helpers and Phase 4B SVG stages are reused.
+The panel restricts faults to valid instruments; changing instrument or fault
+selection clears the previous injection. Activate captures event, pitch, bank,
+heading, selected healthy gyro state and parameters. Clear recovers instantly in
+this educational model; Reset also restores all defaults and removes snapshots.
+
+- **Drive loss:** educational effectiveness decays exponentially with elapsed
+  time (default decay time 15 seconds). AI pitch/bank and HI unwrapped heading
+  progressively favor their captured activation indication. TC response scales
+  toward neutral. Below 5% AI/HI are labelled unreliable; after eight accumulated
+  decay times effectiveness becomes zero. No random tumble, magnetic north snap,
+  exact rotor RPM or manufacturer-specific failed behavior is asserted.
+- **HI directional drift:** signed −12 to +12 deg/min accumulates angular error,
+  with heading wrapping and shortest-angle helpers retained. Pitch/bank are not
+  drift inputs. This is educational drift, not Earth-rate or transport modeling.
+- **AI vertical-reference degradation:** pitch bias ±5° and bank bias ±10° are
+  subtracted from aircraft orientation before the existing bounded vertical
+  reference/display mapping. The reference is distinct from HI's directional one.
+- **TC reduced effectiveness:** 0–100% scales the existing bounded Bank-proxy
+  response. Angular rate remains the real measurand; Bank is only the app proxy.
+  The separate inclinometer ball remains centered and unchanged.
+
+The application advances fault time once per frame, including under reduced
+motion and while the panel is hidden. Parameter changes apply prospectively;
+spin-down integrates elapsed decay fractions, preserving monotonic effectiveness.
+Healthy physical state remains separate from each instrument's effective display
+state; pressure faults compose independently. Healthy lesson views retain their
+reference explanations. Fault status, healthy/effective values, shared chain
+highlights, guided steps and ungraded diagnostic reveals emphasize that a smooth
+indication may still be inaccurate.
+
+Fault definitions expose IDs, valid instruments, stable comparison-chain element
+IDs, categories, symptom patterns and diagnostic clues; transforms expose healthy
+and effective states. Phase 5C can reuse this metadata and pure activation/time
+functions. Common-source failures are discussed conceptually only: no shared
+vacuum plumbing, electrical buses, erection systems, magnetic slaving, slip/skid,
+flight dynamics, AHRS or formal scoring is added. Optional import/init/update
+failure leaves healthy gyro instruments, Phase 5A and earlier lessons usable.

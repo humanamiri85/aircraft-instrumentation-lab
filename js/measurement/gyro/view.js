@@ -17,7 +17,7 @@ function assembly(kind) {
     ${rate?'<g data-component="gc-spring"><path data-spring d="M65 0L73 8L81 -8L89 8L97 0" class="turn-spring"/></g>':''}
     </svg><p class="gc-assembly-caption">${rate?'Restrained · not world-stabilized':kind==='attitude'?'Vertical · world up':'Directional · north'}</p>`;
 }
-function path(instrument) {
+export function path(instrument) {
   const rate=instrument==='turn',ai=instrument==='attitude';
   const cells=[
     ['gc-body','1 · Aircraft motion',rate?'APP CONTROL: Bank proxy<br>REAL MEASURAND: Angular rate':ai?'Pitch / bank orientation':'Heading / yaw orientation'],

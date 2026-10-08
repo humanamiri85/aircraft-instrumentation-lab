@@ -183,3 +183,4 @@
 .faults-panel details{padding:12px;border:1px solid #58687b;margin:8px 0}
 .faults-panel summary{cursor:pointer}
 @media(max-width:768px){.fault-values,.fault-cards,.fault-matrix{grid-template-columns:1fr}.faults-panel select{width:100%}}
+.gyro-faults-panel fieldset{display:flex;flex-wrap:wrap;gap:12px;align-items:center;min-width:0;border:1px solid var(--line);padding:16px}.gyro-faults-panel select,.gyro-faults-panel input{font:inherit;padding:8px;max-width:100%;min-width:0}.gyro-faults-panel fieldset p{flex-basis:100%;overflow-wrap:anywhere}.gyro-faults-panel label input{display:block;width:130px}.gyro-fault-path{outline:2px dashed var(--accent);outline-offset:-3px}.gyro-faults-panel details{border:1px solid var(--line);padding:12px;margin:8px 0}.gyro-faults-panel summary{cursor:pointer}@media(max-width:768px){.gyro-faults-panel select{width:100%}}
