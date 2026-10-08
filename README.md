@@ -803,3 +803,59 @@ functions. Common-source failures are discussed conceptually only: no shared
 vacuum plumbing, electrical buses, erection systems, magnetic slaving, slip/skid,
 flight dynamics, AHRS or formal scoring is added. Optional import/init/update
 failure leaves healthy gyro instruments, Phase 5A and earlier lessons usable.
+
+### Phase 5C — diagnostic scenarios and troubleshooting
+
+**Diagnostic Scenarios** in System learning opens an optional evidence-first case
+workspace. Thirteen immutable, seedable cases use the actual Phase 5A pressure
+fault transformations and Phase 5B gyro degradation models: two blocked-pitot
+experiments, blocked-static climb/descent, moderate/severe educational pitot
+leaks, positive/negative HI drift (including north crossing), AI reference bias,
+TC reduced effectiveness, HI/AI drive loss, and an initially ambiguous case.
+
+Guided mode identifies the suspected family; Mixed asks for family and specific
+fault; Challenge hides reference comparisons, fault metadata and chain locations
+until an explicit diagnosis. Generic investigation titles avoid giving away the
+answer. Candidate elimination and an evidence matrix keep student reasoning
+separate from model consistency. Progressive hints and suggested experiments
+support common-cause reasoning. Feedback is session-local (attempts, hints,
+experiments and diagnosis outcome), with no formal grades, accounts or storage.
+
+Use the existing independent flight controls for case experiments. The case owns
+isolated instances of the existing fault models and VSI lag; it never updates the
+manual fault panels' snapshots or rewrites their healthy/effective states. A
+paused-by-default simulation clock, deterministic 10-second observation action
+and optional running clock expose accumulating drift, decaying reference hold
+and blocked-static VSI settling. Reduced motion changes visuals, not diagnostic
+time evolution. Altitude and Vertical Speed remain independent controls; the VSI
+uses the established educational pressure-trend/lag model, not integrated flight
+dynamics. TC still senses angular rate conceptually; Bank remains only a teaching
+proxy and the ball remains a separate centered subsystem.
+
+A control/observation history exposes the case checkpoints used for reasoning.
+Candidate consistency is calculated from real-model counterfactual indication
+histories under the same bounded case parameters and control/time experiments,
+not a duplicate symptom table or a probabilistic diagnosis engine. This is a
+closed set of educational hypotheses, not a claim that all hardware faults are
+uniquely distinguishable. The activation-only trapped-pressure case explicitly
+reports **More evidence is needed** until an airspeed experiment distinguishes
+its candidates. Rejecting an inconsistent candidate never makes remaining
+alternatives falsely unique.
+
+After an attempt, the debrief explains key evidence, common sources, alternatives,
+confirming experiments and **INDICATION ≠ TRUTH**. A healthy-reference reveal
+separates physical values from effective indications. Existing Phase 4A/4B diagrams
+highlight stable chain-element/component attachments after diagnosis. Reset
+Scenario restores/reapplies the case; Next Scenario clears reasoning and fault
+state. Global Reset clears the diagnostic case while preserving normal cockpit
+reset behavior. Imports, initialization and updates are isolated from the cockpit,
+manual faults, comparison and internal lessons.
+
+`js/diagnostics/model.js` owns immutable definitions, model instances, histories,
+evaluation and reasoning state; `content.js` supplies hints/debriefs/experiments;
+`view.js` renders the accessible responsive workspace. Error-category metadata
+(bias-like, drift, lag, stuck/trapped, sensitivity loss, reference degradation)
+is a Phase 6 entry point alongside the shared chain IDs. Formal accuracy,
+precision, uncertainty and assessment definitions remain deferred. No new fault
+physics, shared vacuum/electrical architecture, cabin leaks, flight dynamics,
+maintenance procedures or persistent assessment infrastructure are introduced.
