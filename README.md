@@ -930,3 +930,62 @@ visible focus, mobile-readable values and static text/shape cues support all fiv
 responsive widths and reduced motion. Manufacturer-specific displays, avionics
 bus protocols, MEMS fabrication, detailed ADC/signal-conditioning theory, Kalman
 filtering, full INS, formal assessment and student accounts remain out of scope.
+
+## Parallel Guided Learning Journey
+
+The application now has two coexisting experiences:
+
+- **Explore Lab** at `/`: the existing validated production page, exposing the
+  full laboratory. Its HTML, styles, startup, scientific models and navigation
+  remain unchanged by this task.
+- **Guided Learning Journey** at `guided.html`: a parallel preview that uses
+  progressive disclosure, opening questions, focused interactions and concise
+  transitions. Preview: https://humanamiri85.github.io/aircraft-instrumentation-lab/guided.html
+
+The nine stages are Flight Information; Meet the Six Instruments; Aircraft &
+Instruments; Inside the Instruments; Measurement Chains; Compare Measurement
+Principles; When Measurement Goes Wrong; Troubleshooting; and Modern Aircraft
+Instrumentation. A secondary Journey Overview permits direct stage access;
+Previous, Continue and Continue anyway keep the sequence non-blocking. Suggested
+completion involves inspections, control experiments, pressure/gyro walkthroughs,
+comparisons, fault activation and a diagnosis attempt. Feedback is not a grade.
+Progress is stored only in this browser tab's session; if storage is unavailable,
+in-memory progress still works. Restart Journey clears teaching progress.
+
+`js/journey/model.js` defines stage/focus/completion metadata; `content.js` contains
+questions and transitions; `progress.js` sanitizes session progress; `view.js`
+orchestrates the teaching UI; and `adapters.js` supplies a Guided-specific DOM
+shell and adapters. `start.js` provides a local initialization fallback with an
+Explore Full Lab link. `journey.css` is loaded only by `guided.html`.
+
+The Guided shell initializes the **existing, unchanged `js/app.js`** on its own
+compatible DOM. It does not fetch or embed `index.html`, copy the simulation
+loop, create additional aircraft variables, or implement new physics. Existing
+instrument renderers, 3D cues, internal lessons, Phase 4 chains/comparison metadata,
+Phase 5 fault/diagnostic engines and Phase 12 mappings remain the sources of
+truth. Same-family guided comparison cards use Phase 4C metadata and read live
+indications from the existing cockpit, without advancing a second lag model.
+Journey focus controls visibility; it does not expose Teaching Focus as a primary
+checkbox or modify its production behavior.
+
+Leaving fault or diagnostic stages clears temporary faults/cases through the
+existing reset controls and restores the healthy initial flight state. Entering
+those exercises also starts clean. Session progress contains no fault snapshots
+or scientific state. Explore Lab does not import Journey modules, so a Journey
+failure cannot block the root experience. Existing optional-feature fallbacks
+also remain available within the Guided shell.
+
+Validation includes Journey-specific unit/browser tests, all nine stages at
+1440/1024/768/390/320 px under both motion preferences, keyboard interaction,
+state cleanup, real-model diagnostics and optional failure checks. The named
+`legacy-index-baseline` browser check precedes the complete existing regression
+suite. `tests/fixtures/legacy-index-baseline.json` records SHA-256 hashes of the
+validated production HTML, CSS and JS modules; the unit suite proves this
+parallel addition did not change them. A future intentional production change
+must explicitly review and update that baseline.
+
+The default experience has **not** been changed or selected for future migration.
+There is no root redirect, production Journey link, router, backend, account,
+assessment score or AI tutor. Advanced features remain the existing conceptual
+teaching models, not certified avionics or flight dynamics. Generic measurement
+science remains in the separate Measurement & Instrumentation project.

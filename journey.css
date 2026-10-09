@@ -1,0 +1,69 @@
+/* Loaded only by guided.html. No production stylesheet or page is changed. */
+.journey [hidden]{display:none!important}
+.journey header{height:auto;min-height:80px;flex-wrap:wrap;padding:20px 4%}
+.journey a{color:var(--accent)}
+.journey main{max-width:1280px;padding-top:26px}
+.journey-heading{max-width:820px;margin-bottom:18px}
+.journey-heading h1{font-size:clamp(26px,3vw,38px);margin:8px 0 12px}
+#journey-position{font:16px ui-monospace,monospace;color:var(--muted)}
+#journey-question{font-size:20px;color:var(--accent)}
+#journey-objective{color:#c4ced0}
+.journey button,.journey select{font:inherit;min-height:44px;white-space:normal}
+.journey button{border:1px solid #566066;background:#20282c;color:inherit;padding:10px 14px;border-radius:6px;cursor:pointer}
+.journey button:hover{border-color:var(--accent)}
+.journey button:disabled{opacity:.5;cursor:default}
+.journey :focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.journey select{max-width:100%;background:#182025;color:inherit;border:1px solid #566066;border-radius:4px;padding:8px}
+.journey fieldset{min-inline-size:0;max-width:100%}
+.journey .faults-panel select,.journey #faults-internal select{width:100%}
+#journey-progress{display:flex;gap:8px;padding:0;list-style:none;margin:18px 0;flex-wrap:wrap}
+#journey-progress li{border-bottom:2px solid #596269;flex:1;min-width:23px;padding-bottom:6px;color:var(--muted)}
+#journey-progress li[aria-current]{border-color:var(--accent);color:var(--accent);font-weight:700}
+.journey-progress-state{display:block;font-size:11px}
+.journey-progress-symbol{display:none}
+.journey-overview{margin-bottom:24px;border-bottom:1px solid var(--line);padding-bottom:14px}
+.journey summary{cursor:pointer;padding:10px 0}
+.journey-overview nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0}
+#journey-interaction{margin-bottom:20px}
+.journey-flight-intro{max-width:650px;margin:auto;text-align:center;border:1px solid var(--line);padding:18px;border-radius:8px;background:var(--surface)}
+.journey-flight-intro svg{max-width:100%;height:140px}
+.journey-question-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:20px}
+.journey-question-grid button{text-align:left;padding:18px}
+.journey-question-grid span{display:block;color:var(--accent);margin-top:8px}
+.journey button[aria-pressed=true]{border:2px solid var(--accent)}
+.journey-substeps{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.journey .workspace{grid-template-columns:minmax(0,1fr) 290px;gap:20px}
+.journey .workspace .flight-panels{min-width:0}
+.journey .cockpit{padding:18px}
+.journey .instrument-grid{margin:14px 0 0;gap:12px}
+.journey .instrument{padding:8px}
+.journey .instrument-name{font-size:14px}
+.journey .journey-context{opacity:.65}
+.journey .journey-current{border-left:3px solid var(--accent);padding-left:10px}
+.journey .control input{height:32px}
+.journey .aircraft-panel{margin-top:20px}
+.journey .aircraft-viewport{height:360px}
+.journey[data-stage=aircraft] .flight-panels{display:flex;flex-direction:column}
+.journey[data-stage=aircraft] .aircraft-panel{order:-1;margin:0 0 20px}
+.journey[data-stage=aircraft] .cockpit{max-width:600px}
+.journey .internal-panel{display:none}
+.journey .internal-panel[data-journey-visible=true]{display:block;margin:18px 0}
+.journey[data-stage=inside] .cockpit,.journey[data-stage=chains] .cockpit{max-width:550px}
+.journey[data-stage=inside] .instrument-grid,.journey[data-stage=chains] .instrument-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.journey[data-stage=information] #lab-host{display:none}
+.journey-pair{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.journey-pair article{padding:18px;background:var(--surface);border:1px solid var(--line);border-radius:8px;min-width:0}
+.journey-pair dt{font-size:13px;color:var(--accent);margin-top:12px}
+.journey-pair dd{margin:4px 0 0;overflow-wrap:anywhere}
+.journey-selectors{display:flex;flex-wrap:wrap;gap:14px}.journey-selectors label{display:grid;gap:6px;flex:1;min-width:0}
+.journey-reflection{border-top:1px solid var(--line);margin-top:24px;padding:20px 0}
+#journey-synthesis{font-size:19px;color:var(--accent)}
+.journey-navigation{display:flex;gap:12px;justify-content:space-between;flex-wrap:wrap}
+#journey-continue{background:var(--accent);color:#151a1c;font-weight:700}
+#journey-anyway{margin-left:auto}
+.journey-announcement{color:var(--accent)}
+.journey footer{flex-wrap:wrap}
+@media(max-width:1024px){.journey .workspace{grid-template-columns:minmax(0,1fr) 260px}.journey .instrument-grid{gap:8px}.journey .modern-comparison{grid-template-columns:1fr}}
+@media(max-width:768px){.journey .workspace{display:flex;flex-direction:column}.journey .workspace>aside{order:-1;width:100%}.journey .flight-panels{width:100%}.journey-question-grid,.journey-overview nav{grid-template-columns:repeat(2,minmax(0,1fr))}.journey .instrument-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.journey-pair{grid-template-columns:1fr}.journey[data-stage=inside] .instrument-grid,.journey[data-stage=chains] .instrument-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.journey .aircraft-viewport{height:300px}}
+@media(max-width:390px){.journey main{padding-left:14px;padding-right:14px}.journey header{padding:16px 14px}.journey .brand{font-size:12px;letter-spacing:.5px}.journey-question-grid,.journey-overview nav{grid-template-columns:1fr}.journey-progress-state{display:none}.journey-progress-symbol{display:block;font-size:14px}.journey .instrument-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.journey .controls,.journey .cockpit{padding:14px}.journey .instrument-name{font-size:13px}.journey .aircraft-viewport{height:250px}.journey .journey-selectors{display:grid;grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.journey *, .journey *::before, .journey *::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}

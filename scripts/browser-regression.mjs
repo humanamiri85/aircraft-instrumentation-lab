@@ -1,3 +1,4 @@
+import {checkLegacyBaseline,runJourneyChecks} from './journey-browser-checks.mjs';
 import {checkModern,checkModernIsolation} from './modern-browser-checks.mjs';
 import {checkDiagnostics,checkDiagnosticIsolation} from './diagnostic-browser-checks.mjs';
 import {checkGyroFaults,checkGyroFaultIsolation} from './gyro-fault-browser-checks.mjs';
@@ -78,6 +79,7 @@ try {
     if(scenario==='modern-init-throws')await page.route('**/js/modern/view.js',route=>route.fulfill({contentType:'text/javascript',body:'export function createModernView(){throw new Error("Injected modern init failure");}'}));
     if(scenario==='modern-update-throws')await page.route('**/js/modern/view.js',route=>route.fulfill({contentType:'text/javascript',body:'export function createModernView(panel){panel.innerHTML="<p>Injected modern view</p>";return {select(){},open(){panel.hidden=false;},setExtensionFocus(){},update(state){if(state.pitch===17)throw new Error("Injected modern update failure");}};}'}));
     await page.goto(base);
+    if(scenario==='normal'){await page.locator('#instruments svg').first().waitFor();await checkLegacyBaseline(page);}
     await page.waitForFunction(()=>document.querySelectorAll('input[type=range]').length===6);
     if(['normal','input-throws','missing-lesson','lesson-update-throws','missing-chain','chain-init-throws','chain-update-throws','missing-gyro-chain','gyro-chain-init-throws','gyro-chain-update-throws','missing-comparison','comparison-init-throws','comparison-update-throws','missing-fault','fault-init-throws','fault-update-throws','missing-gyro-fault','gyro-fault-init-throws','gyro-fault-update-throws','missing-diagnostics','diagnostic-init-throws','diagnostic-update-throws','missing-modern','modern-init-throws','modern-update-throws'].includes(scenario)) {
       await page.waitForFunction(()=>document.querySelector('.aircraft-status').hidden);
@@ -186,5 +188,6 @@ try {
     console.log(`PASS ${scenario}: all six controls, SVG updates, Reset and continuing animation`);
     await browser.close();browser=undefined;
   }
+  results.push(...await runJourneyChecks({chromium,base,executablePath:process.env.CHROMIUM_PATH || '/usr/bin/chromium'}));
   console.log(JSON.stringify({basePath:'/'+root.split('/').at(-1)+'/',results},null,2));
 } finally {await browser?.close();server.kill();}
