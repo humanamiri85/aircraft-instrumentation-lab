@@ -3,7 +3,8 @@ import {readProgress,saveProgress,record,completion,skip,initialProgress} from '
 import {introductions,questions,aircraftExperiments,comparisons,faultExercises} from './content.js';
 import {labShell,createLabAdapter,comparisonCards,syncComparison} from './adapters.js';
 import {instruments} from '../catalog.js';
-import {variables} from '../model.js';
+import {createInstruction} from './polish.js';
+import {bridges,continueLabels} from './instruction.js';
 
 export async function startJourney(){
  const root=document.querySelector('#journey-root');
@@ -11,29 +12,31 @@ export async function startJourney(){
  <ol id="journey-progress" aria-label="Journey progress"></ol><details class="journey-overview"><summary>Journey Overview</summary><nav aria-label="Jump to a Journey stage">${stages.map((s,i)=>`<button type="button" data-journey-stage="${i}">${i+1}. ${s.title}</button>`).join('')}</nav><button type="button" id="restart-journey">Restart Journey progress</button></details>
  <section id="journey-interaction" aria-label="Current learning interaction"></section><p id="journey-detail"></p>
  ${labShell()}
- <section class="journey-reflection"><h2>Observe & reflect</h2><p id="journey-observation"></p><p id="journey-synthesis"></p><p id="journey-completion" role="status" aria-live="polite"></p></section>
+ <section class="journey-reflection"><h2>Observe & reflect</h2><p id="journey-observation"></p><p id="journey-synthesis"></p><p id="journey-bridge"></p><p id="journey-completion" role="status" aria-live="polite"></p></section>
  <nav class="journey-navigation" aria-label="Journey navigation"><button id="journey-previous" type="button">← Previous</button><button id="journey-continue" type="button">Continue →</button><button id="journey-anyway" type="button">Continue anyway →</button></nav><p class="journey-announcement" role="status" id="journey-announcement"></p><footer><span>Session-local learning progress · Educational, not for flight or navigation</span><a href="./">Explore Full Lab</a></footer>`;
  // The same app initializes on a separate compatible DOM; index.html is never
  // fetched, embedded, redirected or modified. It owns the only flight-state loop.
  await import('../app.js');
  const adapter=createLabAdapter(),q=s=>root.querySelector(s);
  let storage;try{storage=window.sessionStorage;}catch{/* In-memory progress still works. */}
- let progress=readProgress(storage),selected='airspeed',experimentKey='pitch',northSeen=false,renderVersion=0;
+ let instruction;
+ let progress=readProgress(storage),selected='airspeed',experimentKey='pitch',renderVersion=0;
  const setSelect=(selector,value)=>{const el=q(selector);if(el){el.value=value;el.dispatchEvent(new Event('change',{bubbles:true}));}};
  function updateProgress(){
   const c=completion(progress);saveProgress(storage,progress);
   q('#journey-position').textContent=`${String(progress.index+1).padStart(2,'0')} / 09`;
-  q('#journey-progress').innerHTML=stages.map((s,i)=>`<li ${i===progress.index?'aria-current="step"':''} aria-label="${i+1}. ${s.title}. ${completion(progress,i).complete?'Complete':progress.skipped.includes(s.id)?'Skipped':i===progress.index?'Current':'Not completed'}" title="${s.title}"><span>${i+1}</span><span class="journey-progress-state">${completion(progress,i).complete?'Complete':progress.skipped.includes(s.id)?'Skipped':i===progress.index?'Current':'Not completed'}</span><span class="journey-progress-symbol" aria-hidden="true">${completion(progress,i).complete?'✓':progress.skipped.includes(s.id)?'↷':i===progress.index?'→':'○'}</span></li>`).join('');
+  q('#journey-progress').innerHTML=stages.map((s,i)=>`<li ${i===progress.index?'aria-current="step"':''} aria-label="${i+1}. ${s.title}. ${completion(progress,i).complete?'Complete':progress.skipped.includes(s.id)?'Skipped':i===progress.index?'Current':'Not completed'}" title="${s.title}"><span>${i+1}</span><span class="journey-progress-state">${completion(progress,i).complete?'Complete':progress.skipped.includes(s.id)?'Skipped':i===progress.index?'Current':'Not completed'}</span><span class="journey-progress-symbol" aria-hidden="true">${i===progress.index?String(i+1):completion(progress,i).complete?'✓':progress.skipped.includes(s.id)?'↷':'○'}</span></li>`).join('');
   q('#journey-completion').textContent=c.complete?'Suggested interactions complete. Continue when ready.':`${c.done} / ${c.total} suggested interactions inspected. You can continue anyway; nothing is graded.`;
   q('#journey-continue').disabled=!c.complete;
-  q('#journey-continue').textContent=progress.index===8?'Finish Journey →':progress.index===0?'Meet the Instruments →':'Continue →';
-  q('#journey-anyway').hidden=c.complete;
+  q('#journey-continue').textContent=continueLabels[progress.index];
+  q('#journey-anyway').hidden=c.complete;q('#journey-bridge').textContent=bridges[progress.index];q('#journey-bridge').hidden=progress.index===8;
   q('#journey-synthesis').hidden=stageAt(progress.index).id==='instruments'&&!c.complete;
  }
  function mark(key){progress=record(progress,key);updateProgress();}
  function pair(left,right,note){q('#journey-pair').innerHTML=comparisonCards(left,right);q('#journey-observation').textContent=note;syncComparison();adapter.focus(left,true);}
  async function renderStage(announce=false){
-  const token=++renderVersion,s=stageAt(progress.index),[question,objective,synthesis]=introductions[s.id];selected=s.focus;northSeen=false;
+  instruction.invalidate();
+  const token=++renderVersion,s=stageAt(progress.index),[question,objective,synthesis]=introductions[s.id];selected=s.focus;
   document.body.dataset.stage=s.id;root.dataset.stage=s.id;
   q('#journey-title').textContent=s.title;q('#journey-question').textContent=question;q('#journey-objective').textContent=objective;q('#journey-synthesis').textContent=synthesis;q('#journey-observation').textContent=objective;q('#journey-detail').textContent='';q('#journey-previous').disabled=progress.index===0;
   adapter.closePanels();
@@ -53,9 +56,9 @@ export async function startJourney(){
    interaction.innerHTML='<button type="button" id="journey-modern-inspect">Inspect shared Classical / Modern values</button>';await adapter.modern();
   }else{
    interaction.innerHTML=s.id==='inside'?'<p>Pressure-based: ASI / ALT / VSI · Gyroscopic: AI / HI / TC. Select a dial below to inspect its internal lesson.</p><button type="button" id="journey-fundamentals">Explore Gyroscope Fundamentals</button>':s.id==='chains'?'<p>Pitot-static: atmosphere/airflow → Pt/Ps → transmission → sensing → indication. Gyroscopic: motion/reference → gyro behavior → mechanism → indication.</p>':'<p>Select an instrument and move its relevant control. TC uses Bank only as an educational proxy; angular rate is the real measurand.</p>';
-   if(['inside','chains'].includes(s.id))await adapter.internal('airspeed',s.id==='chains');else adapter.choose(s.focus);
+   if(['inside','chains'].includes(s.id))await adapter.internal(s.id==='chains'?'altimeter':'airspeed',s.id==='chains');else adapter.choose(s.focus);
   }
-  if(token!==renderVersion)return;updateProgress();if(announce){q('#journey-title').focus({preventScroll:true});q('#journey-title').scrollIntoView({block:'start',behavior:'auto'});q('#journey-announcement').textContent=`Stage ${progress.index+1} of 9: ${s.title}.`;}
+  if(token!==renderVersion)return;await instruction.render(s.id);if(token!==renderVersion)return;updateProgress();if(announce){q('#journey-title').focus({preventScroll:true});q('#journey-title').scrollIntoView({block:'start',behavior:'auto'});q('#journey-announcement').textContent=`Stage ${progress.index+1} of 9: ${s.title}.`;}
  }
  async function go(index,anyway=false){const old=stageAt(progress.index);if(cleansTemporaryState(old.id,stageAt(index).id))adapter.clearTemporary();if(anyway)progress=skip(progress);progress=transition(progress,index);await renderStage(true);}
  function finish(){q('#journey-announcement').textContent='Journey finished. Technology changed. The measurement problem did not. Continue exploring this stage or open the full lab.';q('#journey-announcement').scrollIntoView({block:'center'});}
@@ -66,25 +69,25 @@ export async function startJourney(){
   if(button.dataset.journeyStage!==undefined)await go(Number(button.dataset.journeyStage));
   if(button.id==='restart-journey'){adapter.clearTemporary();progress=initialProgress();await renderStage(true);}
   if(button.dataset.quantity){const item=questions.find(x=>x[0]===button.dataset.quantity);q('#journey-answer').textContent=`${item[2]}: ${item[3]}`;interactionPressed('[data-quantity]',button);mark(item[0]);}
-  if(button.dataset.instrument&&event.isTrusted){selected=button.dataset.instrument;adapter.focus(selected,['faults','diagnostics'].includes(s.id));if(s.id==='instruments')mark(selected);if(['inside','chains'].includes(s.id))await adapter.internal(selected,s.id==='chains');}
+  if(button.dataset.instrument&&event.isTrusted){selected=button.dataset.instrument;adapter.focus(selected,['faults','diagnostics'].includes(s.id));if(['inside','chains'].includes(s.id)){await adapter.internal(selected,s.id==='chains');if(s.id==='chains')await instruction.inspect(selected);}}
   if(button.dataset.aircraftExperiment){experimentKey=button.dataset.aircraftExperiment;const item=aircraftExperiments.find(x=>x[0]===experimentKey);selected=item[1];adapter.choose(selected);interactionPressed('[data-aircraft-experiment]',button);q('#journey-observation').textContent=item[3];q(`#${experimentKey}`).focus({preventScroll:true});}
   if(button.dataset.journeyPair){const p=comparisons.find(x=>x.id===button.dataset.journeyPair);setSelect('#journey-left',p.left);setSelect('#journey-right',p.right);pair(p.left,p.right,p.note);interactionPressed('[data-journey-pair]',button);mark(p.id);}
   if(button.id==='journey-cross-family')adapter.openSystem('comparison-internal','measurement-comparison');
   if(button.dataset.journeyFault){await adapter.fault(button.dataset.journeyFault);q('#journey-observation').textContent=faultExercises.find(x=>x[0]===button.dataset.journeyFault)[2];interactionPressed('[data-journey-fault]',button);}
   if(button.dataset.journeyDiagnostic){setSelect('#dx-mode',button.dataset.journeyDiagnostic);interactionPressed('[data-journey-diagnostic]',button);}
   if(button.id==='journey-fundamentals')await adapter.fundamentals();
-  if(event.isTrusted&&s.id==='inside'&&(button.getAttribute('role')==='tab'||button.hasAttribute('data-select-component')))mark(familyFor(selected));
-  if(event.isTrusted&&s.id==='chains'&&button.hasAttribute('data-step'))mark(familyFor(selected));
+  if(event.isTrusted&&s.id==='inside'&&(button.getAttribute('role')==='tab'||button.hasAttribute('data-select-component'))){if(familyFor(selected)==='gyro')mark('gyro');}
+
   if(s.id==='faults'&&button.hasAttribute('data-activate')&&q('#faults-internal').dataset.faultType!=='normal')mark('pressure');
   if(s.id==='faults'&&button.hasAttribute('data-gf-activate')&&q('#gyro-faults-internal').dataset.faultType!=='normal')mark('gyro');
   if(button.id==='journey-modern-inspect')mark('comparison');
  });
  function interactionPressed(selector,active){root.querySelectorAll(selector).forEach(el=>el.setAttribute('aria-pressed',String(el===active)));}
- root.addEventListener('input',event=>{if(stageAt(progress.index).id!=='aircraft'||event.target.id!==experimentKey)return;const key=event.target.id,value=Number(event.target.value),spec=variables.find(v=>v.key===key);if(key==='heading'){if(value===359)northSeen=true;if(value===0&&northSeen)mark(key);}else if(key==='verticalSpeed'?value!==0:value>spec.initial)mark(key);});
  root.addEventListener('change',event=>{if(['journey-left','journey-right'].includes(event.target.id))pair(q('#journey-left').value,q('#journey-right').value,'What is shared? What differs? What is sensed, inferred, or reference-based?');if(stageAt(progress.index).id==='modern'&&event.target.id==='modern-presentation')mark('comparison');});
  root.addEventListener('submit',event=>{if(stageAt(progress.index).id==='diagnostics'&&event.target.matches('[data-dx-form]')&&q('#dx-diagnosis').value)mark('attempt');});
  // Observe the existing cockpit's values, rather than advancing another model.
  const readings=new MutationObserver(()=>syncComparison());readings.observe(q('#instruments'),{childList:true,subtree:true,characterData:true});
- window.addEventListener('pagehide',event=>{if(!event.persisted){readings.disconnect();adapter.dispose();}});
+ window.addEventListener('pagehide',event=>{if(!event.persisted){readings.disconnect();instruction.dispose();adapter.dispose();}});
+ instruction=createInstruction(root,adapter,mark);
  await renderStage();
 }

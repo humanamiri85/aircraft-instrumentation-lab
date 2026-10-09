@@ -952,6 +952,31 @@ comparisons, fault activation and a diagnosis attempt. Feedback is not a grade.
 Progress is stored only in this browser tab's session; if storage is unavailable,
 in-memory progress still works. Restart Journey clears teaching progress.
 
+The instructional-polish iteration keeps the same nine-stage structure. Stage 2
+walks ASI → ALT → VSI → AI → HI → TC with relevant controls and a visit/interaction
+checklist. Stage 3 provides start values, example actions and observations,
+including a guided 359° → 0°/1° heading experiment. Stage 4 starts with five ASI
+mechanism steps before one gyro inspection; Stage 5 starts with the Altimeter
+pressure chain and a sensed-versus-inferred reveal, then a vertical-reference
+AI chain. Native lessons remain available for free exploration.
+
+Stage 6 shows three essential comparison fields first; “Show full engineering
+comparison” reveals the rest. Four numbered fault protocols reuse the native
+activation controls. Ungraded Predict → Observe → Explain prompts appear at
+selected conceptual transitions. Troubleshooting begins with a progressively
+revealed Observe → Compare → Hypothesize → Experiment → Diagnose → Explain shell;
+its evidence, experiment and evaluation come from the existing Phase 5C case
+workspace. “Open Full Diagnostic Workspace” retains Mixed/Challenge exploration.
+The finale compares classical/modern airspeed and attitude before “Explore the
+Complete Modern System” opens Phase 12. Compact accessible progress, contextual
+Continue labels and stage-end bridges keep the learning sequence explicit.
+
+`instruction.js` holds instructional metadata and bounded completion helpers;
+`polish.js` adapts existing lesson components and rendered case evidence. These
+modules keep only teaching counters and prediction choices, not scientific or
+fault state. Substeps/reveals restart on stage entry; stage completion remains
+session-local. Continue anyway is always available on incomplete stages.
+
 `js/journey/model.js` defines stage/focus/completion metadata; `content.js` contains
 questions and transitions; `progress.js` sanitizes session progress; `view.js`
 orchestrates the teaching UI; and `adapters.js` supplies a Guided-specific DOM

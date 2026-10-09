@@ -44,3 +44,33 @@ test('legacy-index-baseline: production HTML, styles, models, controllers and re
  const hashes=JSON.parse(await readFile(new URL('./fixtures/legacy-index-baseline.json',import.meta.url),'utf8'));
  for(const [path,expected] of Object.entries(hashes)){const data=await readFile(new URL('../'+path,import.meta.url));assert.equal(createHash('sha256').update(data).digest('hex'),expected,path+' changed from validated Explore Lab baseline');}
 });
+
+// Instructional orchestration is deliberately independent of scientific state.
+import {instrumentOrder,instrumentTasks,experimentDetails,experimentComplete,asiWalkthrough,pressureWalkthrough,bridges,continueLabels,reasoningQuestions,faultProtocols,predictions,diagnosticSteps,nextDiagnosticStep,stepState,instrumentInteracted} from '../js/journey/instruction.js';
+test('Sequential six-instrument tasks cover ordered families and meaningful controls',()=>{
+ assert.deepEqual(instrumentOrder,['airspeed','altimeter','vsi','attitude','heading','turn']);
+ for(const id of instrumentOrder){assert.ok(focusFor(id).variables.includes(instrumentTasks[id][2]));assert.ok(instrumentTasks[id][1]);}
+ assert.match(instrumentTasks.turn[4],/Bank proxy.*Angular rate.*centered/);assert.equal(instrumentInteracted('attitude','bank',0,20),true);assert.equal(instrumentInteracted('heading','bank',0,20),false);assert.equal(instrumentInteracted('turn','bank',20,20),false);
+});
+test('Aircraft experiments have explicit start, action, observation, guardrails and a guided north crossing',()=>{
+ assert.deepEqual(Object.keys(experimentDetails),['pitch','bank','heading','altitude','airspeed','verticalSpeed']);
+ for(const [key,d] of Object.entries(experimentDetails)){assert.ok(d.action&&d.observe&&d.guard);assert.equal(experimentComplete(key,d.start,d.start,false),false);}
+ assert.equal(experimentDetails.heading.start,359);assert.equal(experimentComplete('heading',359,0,true),true);assert.equal(experimentComplete('heading',359,1,true),true);assert.equal(experimentComplete('heading',270,0,false),false);
+ assert.equal(experimentComplete('pitch',0,5,false),true);assert.equal(experimentComplete('verticalSpeed',0,-1000,false),true);assert.match(experimentDetails.verticalSpeed.guard,/does not integrate Altitude/);
+});
+test('ASI and pressure-chain walkthroughs reference existing components with bounded substeps',()=>{
+ assert.equal(asiWalkthrough.length,5);assert.deepEqual(asiWalkthrough.map(s=>s[0]),['pitot','capsule','gear','linkage','pointer']);assert.equal(pressureWalkthrough.length,6);assert.ok(pressureWalkthrough.some(s=>s[0]==='static-line'));
+ assert.deepEqual(stepState(99,5),{index:4,last:true});assert.equal(stepState(0,5).last,false);
+});
+test('Comparisons are compact by default and engineering fields are revealable',()=>{
+ const html=comparisonCards('airspeed','altimeter');assert.match(html,/<details><summary>Show full engineering comparison/);assert.ok(html.indexOf('Transmission')>html.indexOf('<details>'));assert.ok(html.indexOf('Displayed quantity')<html.indexOf('<details>'));
+ for(const id of ['pressure','references','rate'])assert.equal(reasoningQuestions[id].length,3);
+});
+test('Predictions and protocols are ungraded orchestration of actual faults',()=>{
+ assert.equal(Object.keys(predictions).length,4);assert.deepEqual(predictions.static.choices,['ASI only','ASI, Altimeter and VSI','Gyro instruments only']);assert.match(predictions.pressure.observe,/Static pressure Ps.*inferred: Altitude/);
+ assert.deepEqual(Object.keys(faultProtocols),['blocked-static','blocked-pitot','pitot-leak','gyro']);for(const steps of Object.values(faultProtocols))assert.ok(steps.length>=5);assert.match(faultProtocols['blocked-pitot'].join(' '),/pressure is trapped, not the pointer/);
+});
+test('Simplified diagnosis progresses to explanation; finale and all bridges retain full workspaces',async()=>{
+ assert.deepEqual(diagnosticSteps,['Observe','Compare','Hypothesize','Experiment','Diagnose','Explain']);assert.equal(nextDiagnosticStep(5),5);assert.equal(nextDiagnosticStep(2),3);assert.equal(bridges.length,9);assert.equal(continueLabels.length,9);assert.match(continueLabels[3],/Measurement Chains/);assert.match(bridges[8],/Technology changed/);
+ const source=await readFile(new URL('../js/journey/polish.js',import.meta.url),'utf8');assert.match(source,/Open Full Diagnostic Workspace/);assert.match(source,/Explore the Complete Modern System/);assert.match(source,/requestSubmit/);assert.match(source,/data-dx-evidence/);assert.doesNotMatch(source,/Math\.exp|activateFault|advanceLag|requestAnimationFrame/);
+});
