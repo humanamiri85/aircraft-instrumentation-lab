@@ -1,6 +1,9 @@
 // Optional lessons load independently after the cockpit is initialized.
 // A broken dependency or renderer disables only its own lesson.
 export const gyroInstruments=['attitude','heading','turn'];
+const systemButtons={comparison:'measurement-comparison',modern:'modern-instrumentation'};
+const isSystem=id=>Object.hasOwn(systemButtons,id);
+const systemButton=id=>document.querySelector(`#${systemButtons[id]}`);
 const lessons=[
   ['airspeed','asi','createAsiInternalView',()=>import('./asi/view.js')],
   ['altimeter','altimeter','createAltimeterInternalView',()=>import('./altimeter/view.js')],
@@ -9,11 +12,12 @@ const lessons=[
   ['heading','heading','createHeadingInternalView',()=>import('./heading/view.js')],
   ['turn','turn','createTurnInternalView',()=>import('./turn/view.js')],
   ['gyro','gyro','createGyroView',()=>import('./gyro/view.js')],
-  ['comparison','comparison','createComparisonView',()=>import('../measurement/comparison/view.js')]
+  ['comparison','comparison','createComparisonView',()=>import('../measurement/comparison/view.js')],
+  ['modern','modern','createModernView',()=>import('../modern/view.js')]
 ];
 export function createInternalLessons() {
   const entries=new Map(lessons.map(([id,prefix,factory,load])=>[id,{panel:document.querySelector(`#${prefix}-internal`),factory,load}]));
-  let selected='airspeed',focused=true,closed=false,state,lag,reduced=false;
+  let selected='airspeed',focused=true,closed=false,state,lag,healthyLag,reduced=false;
   function fail(id,error) {
     const entry=entries.get(id);
     if(entry.failed)return;
@@ -22,12 +26,12 @@ export function createInternalLessons() {
     entry.view=undefined;entry.failed=true;
     // Preserve the section heading referenced by aria-labelledby, replacing partial content.
     const heading=document.createElement('h2');heading.id=entry.panel.getAttribute('aria-labelledby');
-    heading.textContent=id==='comparison'?'Measurement Chain Comparison':id==='gyro'?'Gyroscope Fundamentals':`${id==='airspeed'?'Airspeed':id[0].toUpperCase()+id.slice(1)} internal lesson`;
+    heading.textContent=id==='modern'?'Modern Aircraft Instrumentation':id==='comparison'?'Measurement Chain Comparison':id==='gyro'?'Gyroscope Fundamentals':`${id==='airspeed'?'Airspeed':id[0].toUpperCase()+id.slice(1)} internal lesson`;
     const status=document.createElement('p');status.setAttribute('role','status');
-    status.textContent=id==='comparison'?'Measurement Chain Comparison is unavailable. The cockpit, controls and other lessons remain usable.':'This internal lesson is unavailable. The cockpit, controls and other lessons remain usable.';
+    status.textContent=id==='modern'?'Modern Aircraft Instrumentation is unavailable. The cockpit, faults, diagnostics and other lessons remain usable.':id==='comparison'?'Measurement Chain Comparison is unavailable. The cockpit, controls and other lessons remain usable.':'This internal lesson is unavailable. The cockpit, controls and other lessons remain usable.';
     entry.panel.replaceChildren(heading,status);
-    if(id!=='comparison')entry.panel.hidden=id!==selected;
-    else if(entry.pendingOpen){entry.panel.hidden=false;entry.pendingOpen=false;document.querySelector('#measurement-comparison').setAttribute('aria-expanded','true');}
+    if(!isSystem(id))entry.panel.hidden=id!==selected;
+    else if(entry.pendingOpen){entry.panel.hidden=false;entry.pendingOpen=false;systemButton(id).setAttribute('aria-expanded','true');}
   }
   function run(id,action) {
     const entry=entries.get(id);
@@ -35,7 +39,7 @@ export function createInternalLessons() {
   }
   function updateOne(id,dt=0) {
     if(!state)return;
-    run(id,view=>{if(id==='gyro')view.update(state,dt,reduced);else view.update(state,lag,reduced,dt);view.updateExtension?.(state,lag,reduced);});
+    run(id,view=>{if(id==='gyro')view.update(state,dt,reduced);else view.update(state,id==='modern'?healthyLag:lag,reduced,dt);view.updateExtension?.(state,lag,reduced);});
   }
   function applyFocus() {
     entries.forEach((entry,id)=>entry.panel.classList.toggle('focus-linked',focused&&(id===selected || id==='gyro'&&gyroInstruments.includes(selected))));
@@ -45,7 +49,7 @@ export function createInternalLessons() {
   function synchronize(id) {
     const entry=entries.get(id);
     run(id,view=>view.select(selected));
-    if(entry.failed&&id!=='comparison')entry.panel.hidden=id!==selected;
+    if(entry.failed&&!isSystem(id))entry.panel.hidden=id!==selected;
     updateOne(id);applyFocus();
     if(entry.pendingOpen){entry.pendingOpen=false;run(id,view=>view.open());updateOne(id);}
   }
@@ -68,8 +72,8 @@ export function createInternalLessons() {
       // Cancel delayed opens from earlier selections; loading must never reveal a stale lesson.
       entries.forEach((entry,key)=>{entry.pendingOpen=false;synchronize(key);});
     },
-    update(nextState,nextLag,motion,dt=0) {
-      state=nextState;lag=nextLag;reduced=motion;
+    update(nextState,nextLag,motion,dt=0,nextHealthyLag=nextLag) {
+      state=nextState;lag=nextLag;healthyLag=nextHealthyLag;reduced=motion;
       // Hidden lessons need no DOM work or rotor animation. Selection refreshes from shared state.
       entries.forEach((entry,id)=>{if(!entry.panel.hidden)updateOne(id,dt);});
     },
@@ -77,8 +81,8 @@ export function createInternalLessons() {
     open(id=selected) {
       const entry=entries.get(id);
       if(!entry)return;
-      if(id==='comparison'&&!entry.panel.hidden){entry.panel.hidden=true;document.querySelector('#measurement-comparison').setAttribute('aria-expanded','false');return;}
-      if(id==='comparison'&&entry.failed){entry.panel.hidden=false;document.querySelector('#measurement-comparison').setAttribute('aria-expanded','true');return;}
+      if(isSystem(id)&&!entry.panel.hidden){entry.panel.hidden=true;systemButton(id).setAttribute('aria-expanded','false');return;}
+      if(isSystem(id)&&entry.failed){entry.panel.hidden=false;systemButton(id).setAttribute('aria-expanded','true');return;}
       if(!entry.view&&!entry.failed){entry.pendingOpen=true;return;}
       run(id,view=>view.open());updateOne(id);
     },

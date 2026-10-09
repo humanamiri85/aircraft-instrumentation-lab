@@ -1,3 +1,4 @@
+import {checkModern,checkModernIsolation} from './modern-browser-checks.mjs';
 import {checkDiagnostics,checkDiagnosticIsolation} from './diagnostic-browser-checks.mjs';
 import {checkGyroFaults,checkGyroFaultIsolation} from './gyro-fault-browser-checks.mjs';
 import {checkFaults,checkFaultIsolation} from './fault-browser-checks.mjs';
@@ -32,7 +33,7 @@ const base = `http://127.0.0.1:${port}/${encodeURIComponent(root.split('/').at(-
 let browser;
 const results=[];
 try {
-  for (const scenario of ['normal','missing-view','missing-cues','missing-three','missing-three-core','init-throws','update-throws','frame-throws','input-throws','missing-lesson','lesson-update-throws','missing-chain','chain-init-throws','chain-update-throws','missing-gyro-chain','gyro-chain-init-throws','gyro-chain-update-throws','missing-comparison','comparison-init-throws','comparison-update-throws','missing-fault','fault-init-throws','fault-update-throws','missing-gyro-fault','gyro-fault-init-throws','gyro-fault-update-throws','missing-diagnostics','diagnostic-init-throws','diagnostic-update-throws','webgl-disabled']) {
+  for (const scenario of ['normal','missing-view','missing-cues','missing-three','missing-three-core','init-throws','update-throws','frame-throws','input-throws','missing-lesson','lesson-update-throws','missing-chain','chain-init-throws','chain-update-throws','missing-gyro-chain','gyro-chain-init-throws','gyro-chain-update-throws','missing-comparison','comparison-init-throws','comparison-update-throws','missing-fault','fault-init-throws','fault-update-throws','missing-gyro-fault','gyro-fault-init-throws','gyro-fault-update-throws','missing-diagnostics','diagnostic-init-throws','diagnostic-update-throws','missing-modern','modern-init-throws','modern-update-throws','webgl-disabled']) {
     browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH || '/usr/bin/chromium',headless:true,args:['--no-sandbox',...(scenario==='webgl-disabled'?['--disable-webgl']:['--use-angle=swiftshader','--enable-unsafe-swiftshader'])]});
     const page=await browser.newPage({reducedMotion:'reduce'});
     const errors=[],network=[];
@@ -73,9 +74,12 @@ try {
     if(scenario==='missing-diagnostics')await page.route('**/js/diagnostics/view.js',route=>route.fulfill({status:404,contentType:'text/javascript',body:'// missing diagnostics'}));
     if(scenario==='diagnostic-init-throws')await page.route('**/js/diagnostics/view.js',route=>route.fulfill({contentType:'text/javascript',body:'export function createDiagnosticView(){throw new Error("Injected diagnostic init failure");}'}));
     if(scenario==='diagnostic-update-throws')await page.route('**/js/diagnostics/view.js',route=>route.fulfill({contentType:'text/javascript',body:'export function createDiagnosticView(){return {open(){},setFocus(){},update(state){if(state.pitch===18)throw new Error("Injected diagnostic update failure");}};}'}));
+    if(scenario==='missing-modern')await page.route('**/js/modern/view.js',route=>route.fulfill({status:404,contentType:'text/javascript',body:'// missing modern workspace'}));
+    if(scenario==='modern-init-throws')await page.route('**/js/modern/view.js',route=>route.fulfill({contentType:'text/javascript',body:'export function createModernView(){throw new Error("Injected modern init failure");}'}));
+    if(scenario==='modern-update-throws')await page.route('**/js/modern/view.js',route=>route.fulfill({contentType:'text/javascript',body:'export function createModernView(panel){panel.innerHTML="<p>Injected modern view</p>";return {select(){},open(){panel.hidden=false;},setExtensionFocus(){},update(state){if(state.pitch===17)throw new Error("Injected modern update failure");}};}'}));
     await page.goto(base);
     await page.waitForFunction(()=>document.querySelectorAll('input[type=range]').length===6);
-    if(['normal','input-throws','missing-lesson','lesson-update-throws','missing-chain','chain-init-throws','chain-update-throws','missing-gyro-chain','gyro-chain-init-throws','gyro-chain-update-throws','missing-comparison','comparison-init-throws','comparison-update-throws','missing-fault','fault-init-throws','fault-update-throws','missing-gyro-fault','gyro-fault-init-throws','gyro-fault-update-throws','missing-diagnostics','diagnostic-init-throws','diagnostic-update-throws'].includes(scenario)) {
+    if(['normal','input-throws','missing-lesson','lesson-update-throws','missing-chain','chain-init-throws','chain-update-throws','missing-gyro-chain','gyro-chain-init-throws','gyro-chain-update-throws','missing-comparison','comparison-init-throws','comparison-update-throws','missing-fault','fault-init-throws','fault-update-throws','missing-gyro-fault','gyro-fault-init-throws','gyro-fault-update-throws','missing-diagnostics','diagnostic-init-throws','diagnostic-update-throws','missing-modern','modern-init-throws','modern-update-throws'].includes(scenario)) {
       await page.waitForFunction(()=>document.querySelector('.aircraft-status').hidden);
       for(const resource of ['js/app.js','js/model.js','js/catalog.js','js/aircraft/view.js','js/aircraft/orientation.js','js/aircraft/flight-cues.js','vendor/three/three.module.js','vendor/three/three.core.js']){
         const response=await page.request.get(base+resource);assert.equal(response.status(),200,resource);assert.match(response.headers()['content-type'],/javascript/,resource);
@@ -152,6 +156,7 @@ try {
       await checkFaults(page);
       await checkGyroFaults(page);
       await checkDiagnostics(page);
+      await checkModern(page);
     }
     if(['missing-lesson','lesson-update-throws'].includes(scenario))await checkLessonIsolation(page,scenario);
     if(['missing-chain','chain-init-throws','chain-update-throws'].includes(scenario))await checkMeasurementIsolation(page,scenario);
@@ -160,6 +165,7 @@ try {
     if(['missing-fault','fault-init-throws','fault-update-throws'].includes(scenario))await checkFaultIsolation(page,scenario);
     if(['missing-gyro-fault','gyro-fault-init-throws','gyro-fault-update-throws'].includes(scenario))await checkGyroFaultIsolation(page,scenario);
     if(['missing-diagnostics','diagnostic-init-throws','diagnostic-update-throws'].includes(scenario))await checkDiagnosticIsolation(page,scenario);
+    if(['missing-modern','modern-init-throws','modern-update-throws'].includes(scenario))await checkModernIsolation(page,scenario);
     if(scenario==='normal') {
       for(const [name,width,height] of [['desktop',1440,1000],['tablet',768,1024],['mobile',390,844],['small-mobile',320,700]]) {
         await page.setViewportSize({width,height});
