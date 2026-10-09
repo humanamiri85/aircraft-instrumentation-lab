@@ -855,7 +855,78 @@ manual faults, comparison and internal lessons.
 evaluation and reasoning state; `content.js` supplies hints/debriefs/experiments;
 `view.js` renders the accessible responsive workspace. Error-category metadata
 (bias-like, drift, lag, stuck/trapped, sensitivity loss, reference degradation)
-is a Phase 6 entry point alongside the shared chain IDs. Formal accuracy,
-precision, uncertainty and assessment definitions remain deferred. No new fault
+remains reusable alongside the shared chain IDs. Generic measurement-science
+Phases 6–11 have moved to the separate Measurement & Instrumentation course
+project; formal accuracy, precision and uncertainty teaching belongs there.
+Formal assessment remains deferred. No new fault
 physics, shared vacuum/electrical architecture, cabin leaks, flight dynamics,
 maintenance procedures or persistent assessment infrastructure are introduced.
+
+### Phase 12 — Modern Aircraft Instrumentation
+
+**Roadmap change:** generic measurement-science Phases 6–11 have intentionally
+moved to the separate interactive **Measurement & Instrumentation** teaching
+project. This repository remains aircraft-focused. It does not implement generic
+measurement theory, calibration laboratories, sensor courses, signal-conditioning
+laboratories or ADC/DAQ exercises. Phase 12 bridges the classical instruments
+already present to conceptual modern Air Data, AHRS and digital flight displays.
+
+**Modern Aircraft Instrumentation** in System learning provides three views:
+Classical vs Modern, Air Data System, and Attitude / Heading System. The optional
+workspace reuses the existing lesson controller and shared tab keyboard/navigation
+logic. Classical / Modern / Side by Side presentation modes compare all six
+instrument chains. Stage selectors trace physical world → sensor → electrical
+representation / conceptual digital conversion → computer → digital avionics data
+→ display, with text badges and outlines for focus and live changes. The main
+“What changed? / What did not change?” section emphasizes continuity of physical
+quantities, references, valid information and measurement-versus-inference.
+
+**Air Data:** healthy Pt, Ps and Pt − Ps come directly from the existing Phase 4A
+pressure adapter and Phase 3 ASI / atmosphere models. Conceptual pressure
+transducers convert pressure to electrical representation; an Air Data Computer
+or Air Data Module computes airspeed, altitude and vertical-speed related
+information. Pt/Ps are sensor inputs. Altitude is inferred from Ps, not directly
+sensed by an altitude transducer; no pitot route feeds altitude or VSI. Sensor
+voltages, bridge circuits, calibration curves and ADC exercises are not simulated.
+
+**AHRS:** the Attitude and Heading Reference System concept uses electronic rate
+gyros, accelerometers and appropriate reference / heading aiding. Gyros sense
+angular rate; accelerometers sense specific force, with gravity-related attitude
+aiding subject to motion assumptions. In this educational workspace the shared
+Pitch, Bank and Heading state supplies an ideal solution. Sensor streams and an
+AHRS estimator are not fabricated from controlled orientation. AI's vertical
+reference role and HI's distinct directional reference role remain explicit;
+these do not imply two mechanical stabilized gyros inside AHRS. A magnetometer
+is mentioned only as a possible heading-aiding concept. Bank is still only the TC
+teaching proxy: no real turn rate, strapdown integration, filtering, navigation
+solution or slip/skid physics is introduced.
+
+**PFD:** an original, uncluttered educational Primary Flight Display combines
+pressure-inferred airspeed/altitude tapes, the existing attitude horizon renderer,
+a wrap-safe heading tape and vertical-speed information. It shares the six
+existing flight controls and has no independent aircraft state. A shared healthy
+VSI lag reference is advanced alongside the existing effective-input cockpit lag
+using the exact same Phase 3 model and timing; it is reset with the application.
+The PFD and classical workspace faces consume that same healthy output. This is
+the established pressure-trend teaching representation, not a new digital
+vertical-speed algorithm. Altitude and Vertical Speed remain independent.
+
+The main cockpit retains Phase 5 fault behavior; modern-workspace representations
+are explicitly separate healthy teaching references from the same physical
+state. No new modern-avionics fault physics is implemented. Conceptual examples
+show that invalid pressure can propagate through air-data computation to PFD
+parameters, and degraded inertial/reference information can undermine attitude
+or heading. **DATA VALUE + DATA VALIDITY / RELIABILITY** and **INDICATION ≠ TRUTH**
+remain central: digital presentation is not automatically correct. Healthy status
+assumes ideal sources / solutions; it is not independently measured, certified,
+or the result of redundancy-management logic.
+
+`js/modern/model.js` contains immutable system/quantity mappings and read-only
+existing-model adaptation; `content.js` supplies conceptual explanations;
+`view.js` handles chains, live values and the PFD. Imports, initialization and
+updates are isolated so classical lessons, Phase 4 chains/comparison and Phase 5
+faults/diagnostics survive optional modern-feature failure. Keyboard controls,
+visible focus, mobile-readable values and static text/shape cues support all five
+responsive widths and reduced motion. Manufacturer-specific displays, avionics
+bus protocols, MEMS fabrication, detailed ADC/signal-conditioning theory, Kalman
+filtering, full INS, formal assessment and student accounts remain out of scope.

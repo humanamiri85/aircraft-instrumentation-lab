@@ -5,6 +5,7 @@ import {instruments} from './catalog.js';
 import {instrumentLinks,initialFocus,selectFocus,toggleFocus,linkedFocus} from './education.js';
 let focus=initialFocus();
 let vsiLag=initialLag();
+let healthyVsiLag=initialLag();
 let faultView;
 let gyroFaultView;
 let diagnosticView;
@@ -24,11 +25,12 @@ const target=initialState(),current=initialState();
 const grid=document.querySelector('#instruments'),controls=document.querySelector('#controls');
 const renderers=instruments.map((instrument,index)=>{const button=document.createElement('button');button.type='button';button.className='instrument';button.dataset.instrument=instrument.id;button.setAttribute('aria-pressed','false');button.setAttribute('aria-label',`Learn about the ${instrument.name}`);button.innerHTML=`<div class="drawing"></div><span class="instrument-name">${instrument.name}</span><span class="instrument-value"></span>`;grid.append(button);button.addEventListener('click',()=>select(instrument));return {update:instrument.create(button.querySelector('.drawing')),id:instrument.id,read:instrument.read,value:button.querySelector('.instrument-value')}});
 const lessons=createInternalLessons();
-const internalView={update(state,dt=0){lessons.update(state,vsiLag,motion.matches,dt);},select(id){lessons.select(id);},open(){lessons.open(focus.instrument);}};
+const internalView={update(state,dt=0){lessons.update(state,vsiLag,motion.matches,dt,healthyVsiLag);},select(id){lessons.select(id);},open(){lessons.open(focus.instrument);}};
 
 function renderCockpit(dt=0) {
   const effective=faultInputs(),gyroEffective=gyroFaultInputs(dt);
   vsiLag=advanceLag(vsiLag,effective.verticalSpeed,dt,motion.matches);
+  healthyVsiLag=advanceLag(healthyVsiLag,current.verticalSpeed,dt,motion.matches);
   const indicated={...effective,verticalSpeed:vsiMechanism(vsiLag,effective.verticalSpeed).indicated};
   renderers.forEach(r=>{const state=r.id==='vsi'?indicated:gyroEffective[r.id]?{...effective,...gyroEffective[r.id]}:effective;r.update(state);r.value.textContent=r.read(state)});
   updateFault();updateGyroFault();updateDiagnostics(dt);
@@ -114,12 +116,13 @@ function select(instrument) {
 document.querySelector('#teaching-focus').addEventListener('change',event=>{
   focus=toggleFocus(focus,event.target.checked);applyFocus();
 });
-document.querySelector('#reset').addEventListener('click',()=>{Object.assign(target,initialState());Object.assign(current,target);vsiLag=initialLag();resetFault();resetGyroFault();resetDiagnostics();renderCockpit();internalView.update(current);updateAircraft();variables.forEach(v=>{document.getElementById(v.key).value=target[v.key];document.getElementById(`${v.key}-value`).textContent=format(v,target[v.key])})});
+document.querySelector('#reset').addEventListener('click',()=>{Object.assign(target,initialState());Object.assign(current,target);vsiLag=initialLag();healthyVsiLag=initialLag();resetFault();resetGyroFault();resetDiagnostics();renderCockpit();internalView.update(current);updateAircraft();variables.forEach(v=>{document.getElementById(v.key).value=target[v.key];document.getElementById(`${v.key}-value`).textContent=format(v,target[v.key])})});
 let last=performance.now();
 select(instruments[0]);
 function frame(now){const previousFrame=last;smoothState(current,target,(now-last)/1000,motion.matches);last=now;renderCockpit((now-previousFrame)/1000);internalView.update(current,(now-previousFrame)/1000);updateAircraft((now-previousFrame)/1000);requestAnimationFrame(frame)}requestAnimationFrame(frame);
 
 document.querySelector('#measurement-comparison').addEventListener('click',()=>lessons.open('comparison'));
+document.querySelector('#modern-instrumentation').addEventListener('click',()=>lessons.open('modern'));
 lessons.start();
 
 // Core controls, instruments and the frame loop are ready before optional imports.
